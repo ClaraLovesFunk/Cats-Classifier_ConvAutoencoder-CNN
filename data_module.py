@@ -95,5 +95,3 @@ def data_split(train_list,supervised_ratio,val_ratio, test_ratio):
     train_list, val_list = train_test_split(train_val_list, test_size=val_ratio)
 
     return unsupervised_list, train_list, val_list, test_list
-
-

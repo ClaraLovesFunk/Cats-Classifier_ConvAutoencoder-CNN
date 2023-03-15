@@ -30,6 +30,11 @@ if device =='cuda':
 ###########################################################
 ###########################################################
 
+# FLAGS
+
+train_flag = True
+test_flag = True
+
 
 
 # HYPS & PARAMETERS
@@ -48,6 +53,7 @@ classes = ('cat','dog')
 train_dir = 'data/train'
 test_dir = 'data/test'
 model_path = 'model/cnn.pth'
+results_path = 'results/results_cnn.npy'
 
 train_list = glob.glob(os.path.join(train_dir,'*.jpg')) 
 test_list = glob.glob(os.path.join(test_dir, '*.jpg'))
@@ -88,13 +94,31 @@ optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 
 # TRAIN
 
-model = cnn_cats_train(train_loader, num_epochs, model, criterion, optimizer, model_path)
-torch.save(model.state_dict(), model_path)
-model = ConvNet().to(device)
-model.load_state_dict(torch.load(model_path))
+if train_flag == True:
+
+    model = cnn_cats_train(train_loader, num_epochs, model, criterion, optimizer, model_path)
+    torch.save(model.state_dict(), model_path)
 
 
 
 # EVAL 
 
-accuracy, loss = eval_cats_clf(val_loader, model, criterion)
+if test_flag == True:
+    
+    model = ConvNet().to(device)
+    model.load_state_dict(torch.load(model_path))
+
+    acc, loss = eval_cats_clf(val_loader, model, criterion)
+
+    results = {
+        'acc': acc,
+        'loss': loss
+    }
+    np.save(results_path, results) 
+    results = np.load(results_path,allow_pickle='TRUE').item()
+
+    print('-----------------------------------------------------------')
+    print('-----------------------------------------------------------')
+
+    for metric in results:
+        print(f'{metric}: {results[metric]}')
