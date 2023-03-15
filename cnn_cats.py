@@ -1,5 +1,5 @@
 
-##%%
+#%%
 
 import torch
 import torch.nn as nn
@@ -55,7 +55,7 @@ test_list = glob.glob(os.path.join(test_dir, '*.jpg'))
 
 # INSPECT DATA
 
-show_data(train_list)
+#show_data(train_list)
 # Class frequencies
 
 
@@ -79,20 +79,6 @@ val_loader = torch.utils.data.DataLoader(dataset = val_data, batch_size=batch_si
 
 
 
-
-def imshow(img):
-    img = img / 2 + 0.5  # unnormalize
-    npimg = img.numpy()
-    plt.imshow(np.transpose(npimg, (1, 2, 0)))
-    plt.show()
-
-
-# get some random training images
-dataiter = iter(train_loader)
-images, labels = next(dataiter)
-
-# show images
-imshow(torchvision.utils.make_grid(images))
 
 
 class ConvNet(nn.Module):
