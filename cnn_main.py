@@ -16,8 +16,8 @@ import os
 import glob
 from sklearn.model_selection import train_test_split
 from PIL import Image
-from data_cats_module import *
-from cnn_cats_module import *
+from data_module import *
+from cnn_module import *
 from eval_module import *
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
