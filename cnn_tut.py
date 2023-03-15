@@ -6,6 +6,11 @@ import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
 import numpy as np
 
+### FYI
+''' images of size 32*32
+filtersize 5
+maxpooing will reduce outputsize by a factor of x if (x,x)'''
+
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -26,6 +31,15 @@ train_dataset = torchvision.datasets.CIFAR10(root='./data', train=True,
 
 test_dataset = torchvision.datasets.CIFAR10(root='./data', train=False,
                                        download=True, transform=transform)
+
+
+
+
+
+
+
+
+
 
 train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size,
                                           shuffle=True)
@@ -53,12 +67,12 @@ imshow(torchvision.utils.make_grid(images))
 class ConvNet(nn.Module):
     def __init__(self):
         super(ConvNet, self).__init__()
-        self.conv1 = nn.Conv2d(3, 6, 5)
+        self.conv1 = nn.Conv2d(3, 6, 5) # 3 input channels bc rgb, output-channel-size, kernel-size
         self.pool = nn.MaxPool2d(2, 2)
-        self.conv2 = nn.Conv2d(6, 16, 5)
-        self.fc1 = nn.Linear(16 * 5 * 5, 120)
+        self.conv2 = nn.Conv2d(6, 16, 5) # input = outputcannels of previous convolution
+        self.fc1 = nn.Linear(16 * 5 * 5, 120) # fully connected layer, input size = tensor dimensions
         self.fc2 = nn.Linear(120, 84)
-        self.fc3 = nn.Linear(84, 10)
+        self.fc3 = nn.Linear(84, 2) # input, final output nodes
 
     def forward(self, x):
         # -> n, 3, 32, 32
@@ -73,7 +87,7 @@ class ConvNet(nn.Module):
 
 model = ConvNet().to(device)
 
-criterion = nn.CrossEntropyLoss()
+criterion = nn.CrossEntropyLoss()               ######## FOR MULTICLASS --> FOR BINARY STH ELSE
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 
 n_total_steps = len(train_loader)

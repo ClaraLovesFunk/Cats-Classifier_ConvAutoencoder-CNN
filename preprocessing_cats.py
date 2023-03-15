@@ -4,11 +4,11 @@ from keras.preprocessing.image import ImageDataGenerator, load_img
 #from keras.utils import to_categorical
 from tensorflow.keras.utils import to_categorical
 from sklearn.model_selection import train_test_split
-import matplotlib.pyplot as plt
 import random
 import os
 from IPython.display import display
-import matplotlib.pyplot as plt
+from matplotlib import pyplot as plt
+import matplotlib.image as mpimg
 
 print(os.listdir("data")) 
 
@@ -41,5 +41,6 @@ df = pd.DataFrame({
 #plt.show()
 
 sample = random.choice(filenames)
-image = load_img("../input/train/train/"+sample)
+image = load_img("data/train/"+sample)
 plt.imshow(image)
+plt.show()
