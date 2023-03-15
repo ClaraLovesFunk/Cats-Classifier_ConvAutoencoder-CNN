@@ -1,3 +1,5 @@
 /data
 /model
 /cnn.pth
+/autoen_tut.py
+/cnn_tut.py
