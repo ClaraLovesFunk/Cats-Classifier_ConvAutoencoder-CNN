@@ -9,18 +9,82 @@ from torchvision import datasets, transforms
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.model_selection import train_test_split
+from data_module import *
 
-transform = transforms.Compose(
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+torch.manual_seed(0)
+if device =='cuda':
+    torch.cuda.manual_seed_all(0) 
+
+
+###########################################################
+###########################################################
+###########################################################
+
+'''transform = transforms.Compose(
     [transforms.ToTensor(),
      transforms.Normalize((0.5), (0.5))
     ])
 
-transform = transforms.ToTensor() #turn images to tensor
+transform = transforms.ToTensor() #turn images to tensor'''
+# FLAGS
+
+train_flag = True
+test_flag = True
 
 
 
-# LOAD DATA
-dataset = datasets.MNIST(root='./data', train=True, download=True, transform=transform)
+# HYPS & PARAMETERS
+
+#num_epochs = 0 ######5
+batch_size=64
+#learning_rate = 0.1 ###0.001
+
+supervised_ratio = 0.2
+train_ratio = 0.8
+val_ratio = 0.1
+test_ratio = 0.1
+
+#classes = ('cat','dog')
+
+train_dir = 'data/train'
+#test_dir = 'data/test'
+model_path = 'model/autoencoder.pth'
+results_path = 'results/results_autoencoder.npy'
+
+train_list = glob.glob(os.path.join(train_dir,'*.jpg')) 
+#test_list = glob.glob(os.path.join(test_dir, '*.jpg'))
+
+
+
+# INSPECT DATA
+
+show_data(train_list)
+# Class frequencies
+
+
+
+# LOAD AND SPLIT DATA
+#dataset = datasets.MNIST(root='./data', train=True, download=True, transform=transform)
+
+unsupervised_list, train_list, val_list, test_list = data_split(train_list,supervised_ratio,val_ratio, test_ratio, random_state=0)
+
+transform_cats = transforms.Compose([   
+    transforms.Resize((224, 224)),
+    transforms.RandomResizedCrop(224),
+    transforms.RandomHorizontalFlip(),
+    transforms.ToTensor()
+])
+
+unsupervised_data = dataset(unsupervised_list, transform=transform_cats)
+#train_data = dataset(train_list, transform=train_transforms)
+#test_data = dataset(test_list, transform=test_transforms)
+#val_data = dataset(val_list, transform=test_transforms)
+
+data_loader= torch.utils.data.DataLoader(dataset = unsupervised_data, batch_size=batch_size, shuffle=True )
+#train_loader = torch.utils.data.DataLoader(dataset = train_data, batch_size=batch_size, shuffle=True )
+#test_loader = torch.utils.data.DataLoader(dataset = test_data, batch_size=batch_size, shuffle=True)
+#val_loader = torch.utils.data.DataLoader(dataset = val_data, batch_size=batch_size, shuffle=True)
 
 
 
@@ -36,16 +100,16 @@ train_indices, test_indices = train_test_split(indices, train_size=100*10, strat
 train_dataset = Subset(dataset, train_indices)
 test_dataset = Subset(dataset, test_indices)
 
-'''
 
 
 
 
 
 
-data_loader = torch.utils.data.DataLoader(dataset=train_dataset,
+
+data_loader = torch.utils.data.DataLoader(dataset=dataset,
                                           batch_size=64, #### ???????
-                                          shuffle=True)
+                                          shuffle=True)'''
 
 print(len(data_loader.dataset))
 
@@ -59,7 +123,7 @@ print(f'range of values of image tensor: {torch.min(images)}, {torch.max(images)
 
 
 
-
+'''
 # repeatedly reduce the size
 class Autoencoder_Linear(nn.Module):
     def __init__(self):
@@ -91,7 +155,7 @@ class Autoencoder_Linear(nn.Module):
         return decoded
     
 # Input [-1, +1] -> use nn.Tanh
-
+'''
 
 
 class Autoencoder(nn.Module):
@@ -137,6 +201,8 @@ optimizer = torch.optim.Adam(model.parameters(),
                              weight_decay=1e-5)
 
 
+
+
 # Point to training loop video
 num_epochs = 1 #######??????
 outputs = []
@@ -175,5 +241,5 @@ for k in range(0, num_epochs, 4):
         plt.imshow(item[0])
 
 print('Finished Training')
-PATH = 'model/autocode_cats.pth'
+PATH = 'model/autoencoder_cats.pth'
 torch.save(model.state_dict(), PATH)
