@@ -1,4 +1,4 @@
-##%%
+#%%
 
 import torch
 import torchvision
@@ -59,7 +59,7 @@ show_data(train_list)
 
 # LOAD AND SPLIT DATA
 
-unsupervised_list, train_list, val_list, test_list = data_split(train_list,supervised_ratio,val_ratio, test_ratio, random_state=0)
+unsupervised_list, train_list, val_list, test_list = data_split(train_list,supervised_ratio,val_ratio, test_ratio=0.01, random_state=0) ############# CHANGE TEST RATIO
 
 transform_cats = transforms.Compose([   
     transforms.Resize((224, 224)),
@@ -89,10 +89,10 @@ model = Autoencoder()
 
 criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(),
-                             learning_rate,              
-                             weight_decay)
+                             lr=0.9,    ####################### 1e-3          
+                             weight_decay=1e-5)
 
-model = autoen_train(num_epochs, data_loader, model, criterion, optimizer)
+model, outputs = autoen_train(num_epochs, data_loader, model, criterion, optimizer)
 torch.save(model.state_dict(), model_path)
 
 
@@ -122,5 +122,5 @@ for k in range(0, num_epochs, 4):
         plt.imshow(item[0])
 
 print('Finished Training')
-PATH = 'model/autoencoder_cats.pth'
-torch.save(model.state_dict(), PATH)
+
+# %%

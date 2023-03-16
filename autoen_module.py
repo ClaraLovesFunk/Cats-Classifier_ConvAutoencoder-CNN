@@ -39,7 +39,7 @@ class Autoencoder(nn.Module):
         decoded = self.decoder(encoded)
         return decoded
     
-    
+
 
 def autoen_train(num_epochs, data_loader, model, criterion, optimizer):
 
@@ -57,4 +57,4 @@ def autoen_train(num_epochs, data_loader, model, criterion, optimizer):
         print(f'Epoch:{epoch+1}, Loss:{loss.item():.4f}')
         outputs.append((epoch, img, recon))
     
-    return model
+    return model, outputs
