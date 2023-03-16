@@ -87,12 +87,12 @@ val_loader = torch.utils.data.DataLoader(dataset = val_data, batch_size=batch_si
 
 model = cnn_cats().to(device)
 
-criterion = nn.CrossEntropyLoss() #####FOR MULTICLASS, softmax already included in loss
-optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
-
 
 
 # TRAIN
+
+criterion = nn.CrossEntropyLoss() #####FOR MULTICLASS, softmax already included in loss
+optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 
 if train_flag == True:
 
