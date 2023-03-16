@@ -27,6 +27,7 @@ if device =='cuda':
     ])
 
 transform = transforms.ToTensor() #turn images to tensor'''
+
 # FLAGS
 
 train_flag = True
@@ -48,12 +49,10 @@ test_ratio = 0.1
 #classes = ('cat','dog')
 
 train_dir = 'data/train'
-#test_dir = 'data/test'
 model_path = 'model/autoencoder.pth'
 results_path = 'results/results_autoencoder.npy'
 
 train_list = glob.glob(os.path.join(train_dir,'*.jpg')) 
-#test_list = glob.glob(os.path.join(test_dir, '*.jpg'))
 
 
 
@@ -77,37 +76,13 @@ transform_cats = transforms.Compose([
 ])
 
 unsupervised_data = dataset(unsupervised_list, transform=transform_cats)
-#train_data = dataset(train_list, transform=train_transforms)
-#test_data = dataset(test_list, transform=test_transforms)
-#val_data = dataset(val_list, transform=test_transforms)
 
 data_loader= torch.utils.data.DataLoader(dataset = unsupervised_data, batch_size=batch_size, shuffle=True )
-#train_loader = torch.utils.data.DataLoader(dataset = train_data, batch_size=batch_size, shuffle=True )
-#test_loader = torch.utils.data.DataLoader(dataset = test_data, batch_size=batch_size, shuffle=True)
-#val_loader = torch.utils.data.DataLoader(dataset = val_data, batch_size=batch_size, shuffle=True)
 
 
 
 
-
-'''
-# TAKE ONLY PARTIAL DATA
-# Split the indices in a stratified way
-indices = np.arange(len(dataset))
-train_indices, test_indices = train_test_split(indices, train_size=100*10, stratify=dataset.targets)
-
-# Warp into Subsets and DataLoaders
-train_dataset = Subset(dataset, train_indices)
-test_dataset = Subset(dataset, test_indices)
-
-
-
-
-
-
-
-
-data_loader = torch.utils.data.DataLoader(dataset=dataset,
+'''data_loader = torch.utils.data.DataLoader(dataset=dataset,
                                           batch_size=64, #### ???????
                                           shuffle=True)'''
 
@@ -119,43 +94,6 @@ images, labels = dataiter.next()
 print(f'range of values of image tensor: {torch.min(images)}, {torch.max(images)}') # based on original image values that were put in tensor and based on normalization
 
 
-
-
-
-
-'''
-# repeatedly reduce the size
-class Autoencoder_Linear(nn.Module):
-    def __init__(self):
-        super().__init__()        
-        self.encoder = nn.Sequential(
-            nn.Linear(28 * 28, 128), # number of pixels, outputsize (here it reduces the size from 784 to 128) #####(N, 784) -> (N, 128)
-            nn.ReLU(),
-            nn.Linear(128, 64),
-            nn.ReLU(),
-            nn.Linear(64, 12),
-            nn.ReLU(),
-            nn.Linear(12, 3) # -> N, 3
-        )
-        
-        self.decoder = nn.Sequential(
-            nn.Linear(3, 12),
-            nn.ReLU(),
-            nn.Linear(12, 64),
-            nn.ReLU(),
-            nn.Linear(64, 128),
-            nn.ReLU(),
-            nn.Linear(128, 28 * 28),
-            nn.Sigmoid() ###### activation function that puts the values in the range 0-1 (bc thats the min and max values for the tensors we tested earlier)
-        )                ##### we min max values of our input data would be -1,1, we need tanh
-
-    def forward(self, x):
-        encoded = self.encoder(x)
-        decoded = self.decoder(encoded)
-        return decoded
-    
-# Input [-1, +1] -> use nn.Tanh
-'''
 
 
 class Autoencoder(nn.Module):
@@ -199,8 +137,6 @@ criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(),
                              lr=0.5,              #######1e-3
                              weight_decay=1e-5)
-
-
 
 
 # Point to training loop video
