@@ -56,7 +56,7 @@ model_path = 'model/cnn.pth'
 results_path = 'results/results_cnn.npy'
 
 train_list = glob.glob(os.path.join(train_dir,'*.jpg')) 
-test_list = glob.glob(os.path.join(test_dir, '*.jpg'))
+#test_list = glob.glob(os.path.join(test_dir, '*.jpg'))
 
 
 
@@ -69,9 +69,9 @@ show_data(train_list)
 
 # LOAD AND SPLIT DATA
 
-unsupervised_list, train_list, val_list, test_list = data_split(train_list,supervised_ratio,val_ratio, test_ratio)
+unsupervised_list, train_list, val_list, test_list = data_split(train_list,supervised_ratio,val_ratio, test_ratio, random_state=0)
 
-train_transforms, val_transforms, test_transforms = transf()
+unsupervised_transforms, train_transforms, val_transforms, test_transforms = transf()
 
 train_data = dataset(train_list, transform=train_transforms)
 test_data = dataset(test_list, transform=test_transforms)
@@ -85,7 +85,7 @@ val_loader = torch.utils.data.DataLoader(dataset = val_data, batch_size=batch_si
 
 # DEFINE MODEL
 
-model = ConvNet().to(device)
+model = cnn_cats().to(device)
 
 criterion = nn.CrossEntropyLoss() #####FOR MULTICLASS, softmax already included in loss
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
@@ -105,7 +105,7 @@ if train_flag == True:
 
 if test_flag == True:
     
-    model = ConvNet().to(device)
+    model = cnn_cats().to(device)
     model.load_state_dict(torch.load(model_path))
 
     acc, loss = eval_cats_clf(val_loader, model, criterion)

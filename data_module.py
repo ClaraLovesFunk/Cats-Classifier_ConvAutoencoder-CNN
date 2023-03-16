@@ -42,7 +42,14 @@ class dataset(torch.utils.data.Dataset):
     
 
 
-def transf():# data transformation                             
+def transf():# data transformation 
+    unsupervised_transforms = transforms.Compose([   
+        transforms.Resize((224, 224)),
+        transforms.RandomResizedCrop(224),
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor()
+    ])
+
     train_transforms =  transforms.Compose([     #common image transformations, that can be chained together via .compose
             transforms.Resize((224, 224)), #Resize the input image to the given size.
             transforms.RandomResizedCrop(224), #Crop a random portion of image and resize it to a given size
@@ -64,7 +71,7 @@ def transf():# data transformation
             transforms.ToTensor()
         ])
     
-    return train_transforms, val_transforms, test_transforms
+    return unsupervised_transforms, train_transforms, val_transforms, test_transforms
 
 
 def show_data(train_list):
@@ -83,15 +90,15 @@ def show_data(train_list):
     plt.show()
 
 
-def data_split(train_list,supervised_ratio,val_ratio, test_ratio):
+def data_split(train_list,supervised_ratio,val_ratio, test_ratio, random_state):
 
     # supervised vs unsupervised
-    unsupervised_list, supervised_list = train_test_split(train_list, test_size=supervised_ratio)
+    unsupervised_list, supervised_list = train_test_split(train_list, test_size=supervised_ratio, random_state=random_state)
 
     # train_val vs test
-    train_val_list, test_list = train_test_split(supervised_list, test_size=test_ratio)
+    train_val_list, test_list = train_test_split(supervised_list, test_size=test_ratio,random_state=random_state)
 
     # train vs val
-    train_list, val_list = train_test_split(train_val_list, test_size=val_ratio)
+    train_list, val_list = train_test_split(train_val_list, test_size=val_ratio,random_state=random_state)
 
     return unsupervised_list, train_list, val_list, test_list
