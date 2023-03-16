@@ -9,8 +9,12 @@ from torchvision import datasets, transforms
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
+import numpy as np
+from PIL import Image
 from data_module import *
 from autoen_module import *
+
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 torch.manual_seed(0)
@@ -26,7 +30,7 @@ if device =='cuda':
 
 # FLAGS
 
-train_flag = True
+train_flag = False
 test_flag = True
 
 
@@ -48,12 +52,6 @@ model_path = 'model/autoencoder.pth'
 results_path = 'results/results_autoencoder.npy'
 
 train_list = glob.glob(os.path.join(train_dir,'*.jpg')) 
-
-
-
-# INSPECT DATA
-
-show_data(train_list)
 
 
 
@@ -99,27 +97,35 @@ torch.save(model.state_dict(), model_path)
 
 # EVAL
 
-# plot reconstructed images every i-th epoch 
 #def plot_reconstructed_img(num_epochs, plot_every_i_epoch):
 
 for k in range(0, num_epochs, 4): 
-    plt.figure(figsize=(9, 2))
-    plt.gray()
+    plt.figure(figsize=(5, 2))
+    #plt.gray()
     imgs = outputs[k][1].detach().numpy() # transforms it from tensor to np array
+    lum_img = imgs[:, :, 0]
+
     recon = outputs[k][2].detach().numpy()
-    for i, item in enumerate(imgs):
-        if i >= 9: break # plot first 9 images
-        plt.subplot(2, 9, i+1)
-        # item = item.reshape(-1, 28,28) # -> use for Autoencoder_Linear
-        # item: 1, 28, 28
+    lum_recon = recon[:, :, 0]
+
+    for i, item in enumerate(lum_img):
+        if i >= 5: break 
+        #plt.subplot(2, 5, i+1)
+        #plt.imshow(item[0])
+        plt.subplot(2, 5, i+1)
         plt.imshow(item[0])
             
-    for i, item in enumerate(recon):
+    for i, item in enumerate(lum_recon):
         if i >= 9: break
-        plt.subplot(2, 9, 9+i+1) # row_length + i + 1
-        # item = item.reshape(-1, 28,28) # -> use for Autoencoder_Linear
-        # item: 1, 28, 28
+        plt.subplot(2, 5, 5+i+1) 
         plt.imshow(item[0])
+        fig = plt.figure()
+
+    #plt.imshow(  outputs[0][2].permute(1, 2, 0)  )
+    #plt.show()
+
+    #lum_img = imgs[:, :, 0]
+    #plt.imshow(lum_img)
 
 print('Finished Training')
 
