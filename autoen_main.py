@@ -57,7 +57,7 @@ train_list = glob.glob(os.path.join(train_dir,'*.jpg'))
 
 # LOAD AND SPLIT DATA
 
-unsupervised_list, train_list, val_list, test_list = data_split(train_list,supervised_ratio,val_ratio, test_ratio=0.01, random_state=0) ############# CHANGE TEST RATIO
+unsupervised_list, train_list, val_list, test_list = data_split(train_list,supervised_ratio,val_ratio, test_ratio=0.001, random_state=0) ############# CHANGE TEST RATIO
 
 transform_cats = transforms.Compose([   
     transforms.Resize((224, 224)),
@@ -66,14 +66,19 @@ transform_cats = transforms.Compose([
     transforms.ToTensor()
 ])
 
+
+
 unsupervised_data = dataset(test_list, transform=transform_cats) ######## CHANGE TEST LIST TO UNSUPERVISED LIST!!!!!!!!
+#print(f'unsupervised_data shape after dataset {unsupervised_data.size()}')
 data_loader= torch.utils.data.DataLoader(dataset = unsupervised_data, batch_size=batch_size, shuffle=True )
-print(f'len(data_loader): {len(data_loader.dataset)}')
+#print(f'data_loader shape {data_loader.shape()}')
+#print(f'len(data_loader): {len(data_loader.dataset)}')
 
 # view images
 dataiter = iter(data_loader)
 images, labels = dataiter.next()
-print(f'range of values of image tensor: {torch.min(images)}, {torch.max(images)}') # based on original image values that were put in tensor and all the stuff like cropping, flipping...
+#print(f'range of values of image tensor: {torch.min(images)}, {torch.max(images)}') # based on original image values that were put in tensor and all the stuff like cropping, flipping...
+
 
 
     
@@ -85,47 +90,105 @@ model = Autoencoder()
 
 # TRAIN
 
-criterion = nn.MSELoss()
-optimizer = torch.optim.Adam(model.parameters(),
-                             lr=0.9,    ####################### 1e-3          
-                             weight_decay=1e-5)
+if train_flag == True:
 
-model, outputs = autoen_train(num_epochs, data_loader, model, criterion, optimizer)
-torch.save(model.state_dict(), model_path)
+    criterion = nn.MSELoss()
+    optimizer = torch.optim.Adam(model.parameters(),
+                                lr=0.9,    ####################### 1e-3          
+                                weight_decay=1e-5)
+
+    model, outputs = autoen_train(num_epochs, data_loader, model, criterion, optimizer)
+    torch.save(model.state_dict(), model_path)
 
 
 
 # EVAL
 
-#def plot_reconstructed_img(num_epochs, plot_every_i_epoch):
+model = Autoencoder()
+model.load_state_dict(torch.load(model_path))
 
-for k in range(0, num_epochs, 4): 
-    plt.figure(figsize=(5, 2))
-    #plt.gray()
-    imgs = outputs[k][1].detach().numpy() # transforms it from tensor to np array
-    lum_img = imgs[:, :, 0]
 
-    recon = outputs[k][2].detach().numpy()
-    lum_recon = recon[:, :, 0]
+for (img, _) in data_loader:
+    # img = img.reshape(-1, 28*28) # -> use for Autoencoder_Linear
+    
+    recon = model(img[0]) # reconstrcuted image
+    plt.imshow(  recon.permute(1, 2, 0)  ) 
+    
+    #print(recon.size())
+        #loss = criterion(recon, img) # reconstructed image vs original image and calc mean squaere error
+        
+        #optimizer.zero_grad()
+        #loss.backward()
+        #optimizer.step()
 
-    for i, item in enumerate(lum_img):
-        if i >= 5: break 
-        #plt.subplot(2, 5, i+1)
-        #plt.imshow(item[0])
-        plt.subplot(2, 5, i+1)
-        plt.imshow(item[0])
-            
-    for i, item in enumerate(lum_recon):
-        if i >= 9: break
-        plt.subplot(2, 5, 5+i+1) 
-        plt.imshow(item[0])
-        fig = plt.figure()
+    #print(f'Epoch:{epoch+1}, Loss:{loss.item():.4f}')
+    #outputs.append((epoch, img, recon))
 
-    #plt.imshow(  outputs[0][2].permute(1, 2, 0)  )
-    #plt.show()
 
-    #lum_img = imgs[:, :, 0]
-    #plt.imshow(lum_img)
+
+
+
+
+
+
+
+'''
+for (img, _) in data_loader:
+
+    # original image
+    print(f'img size in dataloader {img[0].size()}')
+    plt.imshow(  img[0].permute(1, 2, 0)  ) 
+    
+    # reconstructed image
+    recon = model(img) # reconstrcuted image
+
+#print(f'original img size {images[0].size()}')
+#plt.imshow(  images[0].permute(1, 2, 0)  ) 
+
+
+dataiter = iter(data_loader)
+images, labels = dataiter.next()
+
+         
+
+'''
+
+
+
+
+
+
+
+'''
+model = Autoencoder().to(device)
+model.load_state_dict(torch.load(model_path))
+
+
+
+img = outputs[0][1][0]
+recon = outputs[0][2][0]
+
+
+print(f'size original img {img.size()}')
+print(f'size reconst. img {recon.size()}')
+
+trans = torchvision.transforms.ToPILImage()
+out = trans(img)
+out.show()
+
+out_recon = trans(recon)
+out_recon.show()
+
+
+#img_permute = img.permute(1, 2, 0)
+#print(f'size original img_permuted {img_permute.size()}')
+
+#plt.imshow(  img.permute(1, 2, 0)  )
+#plt.imshow(  recon.permute(1, 2, 0)  )
+
+
+
+'''
 
 print('Finished Training')
 

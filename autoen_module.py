@@ -42,7 +42,7 @@ class Autoencoder(nn.Module):
 
 
 def autoen_train(num_epochs, data_loader, model, criterion, optimizer):
-
+    
     outputs = []
     for epoch in range(num_epochs):
         for (img, _) in data_loader:
