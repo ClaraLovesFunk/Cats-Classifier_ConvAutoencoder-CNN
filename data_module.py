@@ -93,12 +93,12 @@ def show_data(train_list):
 def data_split(train_list,supervised_ratio,val_ratio, test_ratio, random_state):
 
     # supervised vs unsupervised
-    unsupervised_list, supervised_list = train_test_split(train_list, test_size=supervised_ratio, random_state=random_state)
+    unsupervised_list, supervised_list = train_test_split(train_list, test_size=supervised_ratio, random_state=random_state, shuffle=True)
 
     # train_val vs test
-    train_val_list, test_list = train_test_split(supervised_list, test_size=test_ratio,random_state=random_state)
+    train_val_list, test_list = train_test_split(supervised_list, test_size=test_ratio,random_state=random_state, shuffle=True)
 
     # train vs val
-    train_list, val_list = train_test_split(train_val_list, test_size=val_ratio,random_state=random_state)
+    train_list, val_list = train_test_split(train_val_list, test_size=val_ratio,random_state=random_state, shuffle=True)
 
     return unsupervised_list, train_list, val_list, test_list

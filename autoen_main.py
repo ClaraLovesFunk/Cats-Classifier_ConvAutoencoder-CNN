@@ -14,6 +14,7 @@ import numpy as np
 from PIL import Image
 from data_module import *
 from autoen_module import *
+from eval_viz_module import *
 
 
 
@@ -31,7 +32,7 @@ if device =='cuda':
 
 # FLAGS
 
-train_flag = True
+train_flag = False
 test_flag = True
 
 
@@ -40,7 +41,7 @@ test_flag = True
 
 num_epochs = 1 ######5
 batch_size=64
-learning_rate = 1e-3 ##########
+learning_rate = 0.5 #########1e-3 
 weight_decay=1e-5
 
 supervised_ratio = 0.2
@@ -59,7 +60,7 @@ classes = ('cat','dog')
 
 # LOAD AND SPLIT DATA
 
-unsupervised_list, train_list, val_list, test_list = data_split(train_list,supervised_ratio,val_ratio, test_ratio=0.8, random_state=0) ############# CHANGE TEST RATIO
+unsupervised_list, train_list, val_list, test_list = data_split(train_list, supervised_ratio,val_ratio, test_ratio, random_state=0) 
 
 transform_cats = transforms.Compose([   
     transforms.Resize((224, 224)),
@@ -69,20 +70,15 @@ transform_cats = transforms.Compose([
 ])
 
 
+train_set = dataset(unsupervised_list, transform=transform_cats) 
+test_set = dataset(test_list, transform=transform_cats) 
 
-unsupervised_data = dataset(test_list, transform=transform_cats) ######## CHANGE TEST LIST TO UNSUPERVISED LIST!!!!!!!!
+train_loader = torch.utils.data.DataLoader(dataset = train_set, batch_size=batch_size, shuffle=True )
+test_loader = torch.utils.data.DataLoader(dataset = test_set, batch_size=batch_size, shuffle=True )
 
-#print(f'unsupervised_data shape after dataset {unsupervised_data.size()}')
-train_loader = torch.utils.data.DataLoader(dataset = unsupervised_data, batch_size=batch_size, shuffle=True )
-test_loader = torch.utils.data.DataLoader(dataset = unsupervised_data, batch_size=batch_size, shuffle=True )
-
-
-#print(f'train_loader shape {train_loader.shape()}')
-#print(f'len(train_loader): {len(train_loader.dataset)}')
-
-# view images
+# check range of values in image tensor
 dataiter = iter(train_loader)
-images, labels = dataiter.next()
+images_train, labels_train = dataiter.next()
 #print(f'range of values of image tensor: {torch.min(images)}, {torch.max(images)}') # based on original image values that were put in tensor and all the stuff like cropping, flipping...
 
 
@@ -90,7 +86,7 @@ images, labels = dataiter.next()
     
 # DEFINE MODEL
 
-model = Autoencoder()
+model_untrained = Autoencoder()
 
 
 
@@ -99,54 +95,56 @@ model = Autoencoder()
 if train_flag == True:
 
     criterion = nn.MSELoss()
-    optimizer = torch.optim.Adam(model.parameters(),
-                                lr=0.9,    ####################### 1e-3          
-                                weight_decay=1e-5)
+    optimizer = torch.optim.Adam(model_untrained.parameters(),
+                                lr=learning_rate,             
+                                weight_decay=weight_decay)
 
-    model, outputs = autoen_train(num_epochs, train_loader, model, criterion, optimizer)
+    model, output = autoen_train(num_epochs, train_loader, model_untrained, criterion, optimizer)
     torch.save(model.state_dict(), model_path)
 
 
 
 # EVAL & VIZ
+if test_flag == True:
 
-model = Autoencoder()
+    model = Autoencoder()
+    model.load_state_dict(torch.load(model_path))
+
+    viz_autoen_output(train_loader, model, classes)
+
+
+
+
+'''model = Autoencoder()
 model.load_state_dict(torch.load(model_path))
 
-#Batch of test images
-dataiter = iter(test_loader)
-images, labels = dataiter.next()
-print(labels[0])
+dataiter = iter(train_loader) # SHOULD BE TEST LOADER
+images_test, labels_test = dataiter.next()
 
-#Sample outputs
-output = model(images)
-images = images.numpy()
+outputs = model(images_test)
 
-#output = output.view(batch_size, 3, 32, 32)
-output = output.detach().numpy()
+for k in range(0, num_epochs, 4): 
+    plt.figure(figsize=(9, 2))
+    plt.gray()
 
-def imshow(img):
-    img = img / 2 + 0.5  
-    plt.imshow(np.transpose(img, (1, 2, 0))) 
+    imgs = images_test.detach().numpy() # transforms it from tensor to np array
+    recon = outputs.detach().numpy()
+    for i, item in enumerate(imgs):
+        if i >= 9: break # plot first 9 images
+        plt.subplot(2, 9, i+1)
+        # item = item.reshape(-1, 28,28) # -> use for Autoencoder_Linear
+        # item: 1, 28, 28
+        plt.imshow(item[0])
+            
+    for i, item in enumerate(recon):
+        if i >= 9: break
+        plt.subplot(2, 9, 9+i+1) # row_length + i + 1
+        # item = item.reshape(-1, 28,28) # -> use for Autoencoder_Linear
+        # item: 1, 28, 28
+        plt.imshow(item[0])
 
-#Original Images
-print("Original Images")
-fig, axes = plt.subplots(nrows=1, ncols=5, sharex=True, sharey=True, figsize=(12,4))
-for idx in np.arange(5):
-    ax = fig.add_subplot(1, 5, idx+1, xticks=[], yticks=[])
-    imshow(images[idx])
-    ax.set_title(classes[labels[idx]])
-plt.show()
+print('Finished Training')'''
 
 
-#Reconstructed Images
-print('Reconstructed Images')
-fig, axes = plt.subplots(nrows=1, ncols=5, sharex=True, sharey=True, figsize=(12,4))
-for idx in np.arange(5):
-    ax = fig.add_subplot(1, 5, idx+1, xticks=[], yticks=[])
-    imshow(output[idx])
-    ax.set_title(classes[labels[idx]])
-plt.show() 
-print('Finished Training')
 
 # %%

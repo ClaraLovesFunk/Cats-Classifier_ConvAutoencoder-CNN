@@ -18,7 +18,7 @@ from sklearn.model_selection import train_test_split
 from PIL import Image
 from data_module import *
 from cnn_module import *
-from eval_module import *
+from eval_viz_module import *
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 torch.manual_seed(0)

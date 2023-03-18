@@ -21,6 +21,7 @@ if device =='cuda':
     torch.cuda.manual_seed_all(0) 
 
 
+
 def eval_cats_clf(val_loader, model, criterion):
 
     with torch.no_grad():
@@ -41,3 +42,45 @@ def eval_cats_clf(val_loader, model, criterion):
         print('val_accuracy : {}, val_loss : {}'.format(accuracy,loss))
 
     return accuracy, loss
+
+
+
+def imshow(img):
+    img = img / 2 + 0.5  
+    plt.imshow(np.transpose(img, (1, 2, 0))) 
+
+
+
+def viz_autoen_output(test_loader, model, classes):
+
+    #Batch of test images
+    dataiter = iter(test_loader)
+    images, labels = dataiter.next()
+    #print(labels[0])
+
+    #Sample outputs
+    output = model(images)
+    images = images.numpy()
+
+    #output = output.view(batch_size, 3, 32, 32)
+    output = output.detach().numpy()
+    print(output[0])
+
+    #Original Images
+    print("Original Images")
+    fig, axes = plt.subplots(nrows=1, ncols=5, sharex=True, sharey=True, figsize=(12,4))
+    for idx in np.arange(5):
+        ax = fig.add_subplot(1, 5, idx+1, xticks=[], yticks=[])
+        imshow(images[idx])
+        ax.set_title(classes[labels[idx]])
+    plt.show()
+
+    #Reconstructed Images
+    print('Reconstructed Images')
+    fig, axes = plt.subplots(nrows=1, ncols=5, sharex=True, sharey=True, figsize=(12,4))
+    for idx in np.arange(5):
+        ax = fig.add_subplot(1, 5, idx+1, xticks=[], yticks=[])
+        imshow(output[idx])
+        ax.set_title(classes[labels[idx]])
+    plt.show() 
+    print('Finished Training')
