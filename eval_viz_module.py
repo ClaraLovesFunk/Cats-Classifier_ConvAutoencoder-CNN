@@ -51,28 +51,33 @@ def imshow(img):
 
 
 
-def viz_autoen_output(test_loader, model, classes):
+def viz_autoen_output(test_loader, model, classes,output, images, images_recon):
 
     #Batch of test images
-    dataiter = iter(test_loader)
-    images, labels = dataiter.next()
+    #dataiter = iter(test_loader)
+    #images, labels = dataiter.next()
     #print(labels[0])
 
     #Sample outputs
-    output = model(images)
-    images = images.numpy()
+    #output = output[0][2]#model(images)
+    #images = output[0][1]#images.numpy()
 
     #output = output.view(batch_size, 3, 32, 32)
-    output = output.detach().numpy()
-    print(output[0])
+    images_recon = images_recon.numpy()
+    images = images.numpy()
+
+    #images_recon = images_recon.detach().numpy()
+    #images = images.detach().numpy()
+    #print(images[0])
+    #print(output[0])
 
     #Original Images
     print("Original Images")
     fig, axes = plt.subplots(nrows=1, ncols=5, sharex=True, sharey=True, figsize=(12,4))
-    for idx in np.arange(5):
+    for idx in np.arange(5): 
         ax = fig.add_subplot(1, 5, idx+1, xticks=[], yticks=[])
         imshow(images[idx])
-        ax.set_title(classes[labels[idx]])
+        #ax.set_title(classes[labels[idx]])
     plt.show()
 
     #Reconstructed Images
@@ -80,7 +85,7 @@ def viz_autoen_output(test_loader, model, classes):
     fig, axes = plt.subplots(nrows=1, ncols=5, sharex=True, sharey=True, figsize=(12,4))
     for idx in np.arange(5):
         ax = fig.add_subplot(1, 5, idx+1, xticks=[], yticks=[])
-        imshow(output[idx])
-        ax.set_title(classes[labels[idx]])
+        imshow(images_recon[idx])
+        #ax.set_title(classes[labels[idx]])
     plt.show() 
     print('Finished Training')

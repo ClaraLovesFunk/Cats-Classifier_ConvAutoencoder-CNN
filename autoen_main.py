@@ -32,19 +32,19 @@ if device =='cuda':
 
 # FLAGS
 
-train_flag = False
-test_flag = True
+train_flag = True
+test_flag = False
 
 
 
 # HYPS & PARAMETERS
 
 num_epochs = 1 ######5
-batch_size=64
-learning_rate = 0.5 #########1e-3 
+batch_size=1 # 64
+learning_rate = 1e-3 #########1e-3 
 weight_decay=1e-5
 
-supervised_ratio = 0.2
+supervised_ratio = 0.9997 ######0.2
 train_ratio = 0.8
 val_ratio = 0.1
 test_ratio = 0.1
@@ -66,7 +66,8 @@ transform_cats = transforms.Compose([
     transforms.Resize((224, 224)),
     transforms.RandomResizedCrop(224),
     transforms.RandomHorizontalFlip(),
-    transforms.ToTensor()
+    transforms.ToTensor(),
+    #transforms.Normalize((0.5), (0.5))
 ])
 
 
@@ -75,6 +76,8 @@ test_set = dataset(test_list, transform=transform_cats)
 
 train_loader = torch.utils.data.DataLoader(dataset = train_set, batch_size=batch_size, shuffle=True )
 test_loader = torch.utils.data.DataLoader(dataset = test_set, batch_size=batch_size, shuffle=True )
+
+print(len(train_set)) ##########
 
 # check range of values in image tensor
 dataiter = iter(train_loader)
@@ -99,18 +102,36 @@ if train_flag == True:
                                 lr=learning_rate,             
                                 weight_decay=weight_decay)
 
-    model, output = autoen_train(num_epochs, train_loader, model_untrained, criterion, optimizer)
+    model, output, images, images_recon = autoen_train(num_epochs, train_loader, model_untrained, criterion, optimizer)
     torch.save(model.state_dict(), model_path)
+
+    # look into recon imgs
+    #print(images[0])
+    print(images_recon[0])
+
+
+    images_recon_new=output[0][2]
+    images_recon_new = images_recon_new.detach().numpy()
+
+    #Reconstructed Images
+    print('Reconstructed Images')
+
+    imshow(images_recon_new[0])
+    plt.show() 
+    print('Finished Training')
+
+
+
 
 
 
 # EVAL & VIZ
 if test_flag == True:
 
-    model = Autoencoder()
-    model.load_state_dict(torch.load(model_path))
+    #model = Autoencoder()
+    #model.load_state_dict(torch.load(model_path))
 
-    viz_autoen_output(train_loader, model, classes)
+    viz_autoen_output(train_loader, model, classes, output, images, images_recon)
 
 
 

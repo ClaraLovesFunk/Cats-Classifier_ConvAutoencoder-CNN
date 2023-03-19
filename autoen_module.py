@@ -17,7 +17,7 @@ class Autoencoder(nn.Module):
         self.encoder = nn.Sequential(
             # input-channels, output-channels, kernelsize
             # strategy: increase input-channels, reduce image size to ultimately 1*1
-            nn.Conv2d(3, 16, 5),  
+            nn.Conv2d(3, 16, 5), # stride =1, padding =0 
             nn.ReLU(),
             nn.Conv2d(16, 32, 5),  
             nn.ReLU(),
@@ -44,6 +44,8 @@ class Autoencoder(nn.Module):
 def autoen_train(num_epochs, data_loader, model, criterion, optimizer):
     
     outputs = []
+    images = []
+    images_recon = []
     for epoch in range(num_epochs):
         for (img, _) in data_loader:
             # img = img.reshape(-1, 28*28) # -> use for Autoencoder_Linear
@@ -56,5 +58,7 @@ def autoen_train(num_epochs, data_loader, model, criterion, optimizer):
 
         print(f'Epoch:{epoch+1}, Loss:{loss.item():.4f}')
         outputs.append((epoch, img, recon))
+        images.append(img)
+        images_recon.append(recon)
     
-    return model, outputs
+    return model, outputs, images, images_recon
