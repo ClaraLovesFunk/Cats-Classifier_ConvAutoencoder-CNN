@@ -51,7 +51,7 @@ def imshow(img):
 
 
 
-def viz_autoen_output(test_loader, model, classes,output, images, images_recon):
+def viz_autoen_output(test_loader, model, classes,output):
 
     #Batch of test images
     #dataiter = iter(test_loader)

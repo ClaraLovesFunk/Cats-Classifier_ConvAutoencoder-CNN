@@ -102,12 +102,12 @@ if train_flag == True:
                                 lr=learning_rate,             
                                 weight_decay=weight_decay)
 
-    model, output, images, images_recon = autoen_train(num_epochs, train_loader, model_untrained, criterion, optimizer)
+    model, output = autoen_train(num_epochs, train_loader, model_untrained, criterion, optimizer)
     torch.save(model.state_dict(), model_path)
 
     # look into recon imgs
     #print(images[0])
-    print(images_recon[0])
+    #print(images_recon[0])
 
 
     images_recon_new=output[0][2]
@@ -132,39 +132,6 @@ if test_flag == True:
     #model.load_state_dict(torch.load(model_path))
 
     viz_autoen_output(train_loader, model, classes, output, images, images_recon)
-
-
-
-
-'''model = Autoencoder()
-model.load_state_dict(torch.load(model_path))
-
-dataiter = iter(train_loader) # SHOULD BE TEST LOADER
-images_test, labels_test = dataiter.next()
-
-outputs = model(images_test)
-
-for k in range(0, num_epochs, 4): 
-    plt.figure(figsize=(9, 2))
-    plt.gray()
-
-    imgs = images_test.detach().numpy() # transforms it from tensor to np array
-    recon = outputs.detach().numpy()
-    for i, item in enumerate(imgs):
-        if i >= 9: break # plot first 9 images
-        plt.subplot(2, 9, i+1)
-        # item = item.reshape(-1, 28,28) # -> use for Autoencoder_Linear
-        # item: 1, 28, 28
-        plt.imshow(item[0])
-            
-    for i, item in enumerate(recon):
-        if i >= 9: break
-        plt.subplot(2, 9, 9+i+1) # row_length + i + 1
-        # item = item.reshape(-1, 28,28) # -> use for Autoencoder_Linear
-        # item: 1, 28, 28
-        plt.imshow(item[0])
-
-print('Finished Training')'''
 
 
 

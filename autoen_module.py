@@ -61,4 +61,4 @@ def autoen_train(num_epochs, data_loader, model, criterion, optimizer):
         images.append(img)
         images_recon.append(recon)
     
-    return model, outputs, images, images_recon
+    return model, outputs
