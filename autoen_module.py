@@ -44,11 +44,10 @@ class Autoencoder(nn.Module):
 def autoen_train(num_epochs, data_loader, model, criterion, optimizer):
     
     outputs = []
-    images = []
-    images_recon = []
     for epoch in range(num_epochs):
         for (img, _) in data_loader:
             # img = img.reshape(-1, 28*28) # -> use for Autoencoder_Linear
+
             recon = model(img) # reconstrcuted image
             loss = criterion(recon, img) # reconstructed image vs original image and calc mean squaere error
             
@@ -56,9 +55,9 @@ def autoen_train(num_epochs, data_loader, model, criterion, optimizer):
             loss.backward()
             optimizer.step()
 
+            
+
         print(f'Epoch:{epoch+1}, Loss:{loss.item():.4f}')
         outputs.append((epoch, img, recon))
-        images.append(img)
-        images_recon.append(recon)
     
     return model, outputs

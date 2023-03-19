@@ -40,11 +40,11 @@ test_flag = False
 # HYPS & PARAMETERS
 
 num_epochs = 1 ######5
-batch_size=1 # 64
+batch_size=10 # 64
 learning_rate = 1e-3 #########1e-3 
 weight_decay=1e-5
 
-supervised_ratio = 0.9997 ######0.2
+supervised_ratio = 0.9995 ######0.2
 train_ratio = 0.8
 val_ratio = 0.1
 test_ratio = 0.1
@@ -111,14 +111,29 @@ if train_flag == True:
 
 
     images_recon_new=output[0][2]
-    images_recon_new = images_recon_new.detach().numpy()
+    print(f'size output: {images_recon_new.size()}')
 
-    #Reconstructed Images
+    images_recon_new = images_recon_new.view(2, 3, 224, 224)
+    images_recon_new = images_recon_new.detach().numpy()
+    
+
+    #Single Reconstructed Images
+    imshow(images_recon_new[1])
+    plt.show() 
+
+
+    '''
+    #Multiple Reconstructed Images
     print('Reconstructed Images')
 
-    imshow(images_recon_new[0])
+    fig, axes = plt.subplots(nrows=1, ncols=5, sharex=True, sharey=True, figsize=(12,4))
+    for idx in np.arange(5):
+        ax = fig.add_subplot(1, 5, idx+1, xticks=[], yticks=[])
+        imshow(images_recon_new[idx])
+        #ax.set_title(classes[labels[idx]])
+
     plt.show() 
-    print('Finished Training')
+    print('Finished Training')'''
 
 
 
@@ -131,7 +146,7 @@ if test_flag == True:
     #model = Autoencoder()
     #model.load_state_dict(torch.load(model_path))
 
-    viz_autoen_output(train_loader, model, classes, output, images, images_recon)
+    viz_autoen_output(train_loader, model, classes, output)
 
 
 
