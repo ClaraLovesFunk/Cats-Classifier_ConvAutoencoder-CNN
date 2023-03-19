@@ -40,7 +40,7 @@ test_flag = True
 # HYPS & PARAMETERS
 
 num_epochs = 0 ######5
-batch_size = 4
+batch_size = 4 # number of samples in one batch
 learning_rate = 0.1 ###0.001
 
 supervised_ratio = 0.2
