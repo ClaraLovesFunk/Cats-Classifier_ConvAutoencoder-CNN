@@ -32,19 +32,19 @@ if device =='cuda':
 
 # FLAGS
 
-train_flag = True
-test_flag = False
+train_flag = False
+test_flag = True
 
 
 
 # HYPS & PARAMETERS
 
 num_epochs = 1 ######5
-batch_size=5 # 64     devide sample in smaller batches
+batch_size = 32 # 64     devide sample in smaller batches
 learning_rate = 1e-3 #########1e-3 
 weight_decay=1e-5
 
-supervised_ratio = 0.99 ######0.9996 #0.2
+supervised_ratio = 0.2# 0.99 ######0.9996 #0.2
 train_ratio = 0.8
 val_ratio = 0.1
 test_ratio = 0.1
@@ -72,10 +72,10 @@ transform_cats = transforms.Compose([
 
 
 train_set = dataset(unsupervised_list, transform=transform_cats) 
-#test_set = dataset(test_list, transform=transform_cats) 
+test_set = dataset(test_list, transform=transform_cats) 
 
 train_loader = torch.utils.data.DataLoader(dataset = train_set, batch_size=batch_size, shuffle=True )
-#test_loader = torch.utils.data.DataLoader(dataset = test_set, batch_size=batch_size, shuffle=True )
+test_loader = torch.utils.data.DataLoader(dataset = test_set, batch_size=batch_size, shuffle=True )
 
 print(f'dataset size: {len(train_set)}') ##########
 
@@ -115,71 +115,30 @@ if test_flag == True:
     model = Autoencoder()
     model.load_state_dict(torch.load(model_path))
 
-    for (img, _) in train_loader: # iterating over the batches in train_loader
+    #for (img, _) in test_loader: # iterating over the batches in dataloader
+    dataiter = iter(test_loader) # same but for one batch?
+    img, labels = dataiter.next()
 
-        recon = model(img)
+    recon = model(img)
 
-        imgs = img.detach().numpy()
-        recon = recon.detach().numpy()
+    imgs = img.detach().numpy()
+    recon = recon.detach().numpy()
 
+    # plot original imgs
+    fig, axes = plt.subplots(nrows=1, ncols=5, sharex=True, sharey=True, figsize=(12,4))
+    for idx in np.arange(5):
+        ax = fig.add_subplot(1, 5, idx+1, xticks=[], yticks=[])
+        imshow(imgs[idx])
+        ax.set_title(classes[labels[idx]])
+
+    # plot reconstr. imgs
     fig, axes = plt.subplots(nrows=1, ncols=5, sharex=True, sharey=True, figsize=(12,4))
     for idx in np.arange(5):
         ax = fig.add_subplot(1, 5, idx+1, xticks=[], yticks=[])
         imshow(recon[idx])
-        #ax.set_title(classes[labels[idx]])
+        ax.set_title(classes[labels[idx]])
 
     plt.show() 
     print('Finished Training')
-
-
-
-
-
-'''
-   
-    # look into recon imgs
-    #print(images[0])
-    #print(images_recon[0])
-
-
-    images_recon_new=output[0][2]
-    print(f'size output: {images_recon_new.size()}')
-
-    images_recon_new = images_recon_new.view(2, 3, 224, 224)
-    images_recon_new = images_recon_new.detach().numpy()
-    
-
-    #Single Reconstructed Images
-    imshow(images_recon_new[1])
-    plt.show() 
-
-
-    
-    #Multiple Reconstructed Images
-    print('Reconstructed Images')
-
-    fig, axes = plt.subplots(nrows=1, ncols=5, sharex=True, sharey=True, figsize=(12,4))
-    for idx in np.arange(5):
-        ax = fig.add_subplot(1, 5, idx+1, xticks=[], yticks=[])
-        imshow(images_recon_new[idx])
-        #ax.set_title(classes[labels[idx]])
-
-    plt.show() 
-    print('Finished Training')
-
-
-
-
-
-
-# EVAL & VIZ
-if test_flag == True:
-
-    #model = Autoencoder()
-    #model.load_state_dict(torch.load(model_path))
-
-    viz_autoen_output(train_loader, model, classes, output)'''
-
-
 
 # %%
