@@ -15,28 +15,51 @@ import glob
 from sklearn.model_selection import train_test_split
 from PIL import Image
 
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+torch.manual_seed(0)
+if device =='cuda':
+    torch.cuda.manual_seed_all(0) 
+
+
+###########################################################
+###########################################################
+###########################################################
+
+
+
 
 class cnn_cats(nn.Module):
+
+
     def __init__(self):
+
         super(cnn_cats, self).__init__()
-        self.conv1 = nn.Conv2d(3, 6, 5)
-        self.pool = nn.MaxPool2d(2, 2)
-        self.conv2 = nn.Conv2d(6,16,5)
-        self.fc1 = nn.Linear(in_features=16*53*53, out_features=120)
-        self.fc2 = nn.Linear(120, 84)
-        self.fc3 = nn.Linear(84, 2)
+        self.conv1 = nn.Conv2d(3, 16, 8)
+        self.conv2 = nn.Conv2d(16,32,8)
+        self.conv3 = nn.Conv2d(32,64,8)
+
+        self.pool = nn.MaxPool2d(4, 4)
+
+        self.fc1 = nn.Linear(in_features=1024, out_features=128)
+        self.fc2 = nn.Linear(128, 64)
+        self.fc3 = nn.Linear(64, 2)
+
 
     def forward(self, x):
-        # -> n, 3, 32, 32
-        x = self.pool(F.relu(self.conv1(x)))  # -> n, 6, 14, 14
-        x = self.pool(F.relu(self.conv2(x)))  # -> n, 16, 5, 5
-        #print(x.shape)
-        x = x.view(-1, 16*53*53)       #            # to flatten the output of conv2, the -1 will give us our batch_size
-        x = F.relu(self.fc1(x))               # -> n, 120
-        x = F.relu(self.fc2(x))               # -> n, 84
-        x = self.fc3(x)                       # -> n, 10
+        
+        x = self.pool(F.relu(self.conv1(x)))  
+        x = self.pool(F.relu(self.conv2(x)))  
+        x = F.relu(self.conv3(x))
+
+        x = x.view(-1, 64*4*4)
+
+        x = F.relu(self.fc1(x))               
+        x = F.relu(self.fc2(x))               
+        x = self.fc3(x)  
+
         return x
     
+
 
 
 def cnn_cats_train(train_loader, num_epochs, model, criterion, optimizer, model_path):

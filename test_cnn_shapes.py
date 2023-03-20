@@ -40,13 +40,13 @@ test_flag_cnn = True
 # HYPS & PARAMETERS
 
 num_epochs = 1 ######5
-batch_size = 4 # number of samples in one batch
+batch_size = 5 # number of samples in one batch
 learning_rate = 0.1 ###0.001
 
 supervised_ratio = 0.2
 train_ratio = 0.8
 val_ratio = 0.1
-test_ratio = 0.1
+test_ratio = 0.04
 
 classes = ('cat','dog')
 
@@ -81,44 +81,87 @@ train_loader = torch.utils.data.DataLoader(dataset = train_data, batch_size=batc
 test_loader = torch.utils.data.DataLoader(dataset = test_data, batch_size=batch_size, shuffle=True)
 val_loader = torch.utils.data.DataLoader(dataset = val_data, batch_size=batch_size, shuffle=True)
 
+#for img, labels in test_loader:
+#    x=img
+
+# check range of values in image tensor
+dataiter = iter(test_loader)
+x, y = dataiter.next()
+
+print(f'original dataloader: {x.size()}')
+
+conv1 = nn.Conv2d(3, 16, 8)
+x= conv1(x)
+print(f'conv1: {x.size()}')
+
+pool = nn.MaxPool2d(4, 4)
+x = pool(x)
+print(f'pool: {x.size()}')
+
+conv2 = nn.Conv2d(16,32,8)
+x = conv2(x)
+print(f'conv2: {x.size()}')
+
+pool = nn.MaxPool2d(4, 4)
+x = pool(x)
+print(f'pool: {x.size()}')
+
+conv3 = nn.Conv2d(32,64,8)
+x = conv3(x)
+print(f'conv3: {x.size()}')
 
 
-# DEFINE MODEL
-
-model = cnn_cats().to(device)
 
 
+print('------------------------------------')
 
-# TRAIN
-
-criterion = nn.CrossEntropyLoss() 
-optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
-
-if train_flag_cnn == True:
-
-    model = cnn_cats_train(train_loader, num_epochs, model, criterion, optimizer, model_path)
-    torch.save(model.state_dict(), model_path)
+size_flattened_x = x.size()[1]*x.size()[2]*x.size()[3]
+x = x.view(-1, size_flattened_x)                          
+print(f'reshape with view(): {x.size()}')
 
 
+fc1 = nn.Linear(in_features= size_flattened_x, out_features=120)
+x = fc1(x)
+print(f'fc1: {x.size()}')
 
-# EVAL 
+fc2 = nn.Linear(120, 84)
+x = fc2(x)
+print(f'fc2: {x.size()}')
 
-if test_flag_cnn == True:
+fc3 = nn.Linear(84, 2)
+x = fc3(x)
+print(f'fc3: {x.size()}')
+
+
+
+class cnn_cats(nn.Module):
+
+
+    def __init__(self):
+
+        super(cnn_cats, self).__init__()
+        self.conv1 = nn.Conv2d(3, 16, 8)
+        self.conv2 = nn.Conv2d(16,32,8)
+        self.conv3 = nn.Conv2d(32,64,8)
+
+        self.pool = nn.MaxPool2d(4, 4)
+
+        self.fc1 = nn.Linear(in_features=1024, out_features=128)
+        self.fc2 = nn.Linear(128, 64)
+        self.fc3 = nn.Linear(64, 2)
+
+
+    def forward(self, x):
+        
+        x = self.pool(F.relu(self.conv1(x)))  
+        x = self.pool(F.relu(self.conv2(x)))  
+        x = F.relu(self.conv3(x))
+
+        x = x.view(-1, 64*4*4)
+
+        x = F.relu(self.fc1(x))               
+        x = F.relu(self.fc2(x))               
+        x = self.fc3(x)  
+
+        return x
     
-    model = cnn_cats().to(device)
-    model.load_state_dict(torch.load(model_path))
-
-    acc, loss = eval_cats_clf(val_loader, model, criterion)
-
-    results = {
-        'acc': acc,
-        'loss': loss
-    }
-    np.save(results_path, results) 
-    results = np.load(results_path,allow_pickle='TRUE').item()
-
-    print('-----------------------------------------------------------')
-    print('-----------------------------------------------------------')
-
-    for metric in results:
-        print(f'{metric}: {results[metric]}')
