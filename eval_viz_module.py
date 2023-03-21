@@ -35,7 +35,7 @@ def eval_cats_clf(val_loader, model, criterion):
             val_loss = criterion(val_output,label)
             
             
-            acc = ((val_output.argmax(dim=1) == label).float().mean())
+            acc = ((val_output.argmax(dim=1) == label).float().mean()) #########
             accuracy += acc/ len(val_loader)
             loss += val_loss/ len(val_loader)
             

@@ -39,9 +39,9 @@ test_flag_cnn = True
 
 # HYPS & PARAMETERS
 
-num_epochs = 1 ######5
-batch_size = 4 # number of samples in one batch
-learning_rate = 0.1 ###0.001
+num_epochs = 5 ######5
+batch_size = 100 # number of samples in one batch patrick4 ##### how is batch-size affecting training?
+learning_rate = 0.001 ###0.001
 
 supervised_ratio = 0.2
 train_ratio = 0.8
@@ -91,7 +91,7 @@ model = cnn_cats().to(device)
 
 # TRAIN
 
-criterion = nn.CrossEntropyLoss() 
+criterion = nn.CrossEntropyLoss() #eingebautes softmax
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 
 if train_flag_cnn == True:
@@ -102,10 +102,10 @@ if train_flag_cnn == True:
 
 
 # EVAL 
-
+'''
 if test_flag_cnn == True:
     
-    model = cnn_cats().to(device)
+    #model = cnn_cats().to(device)
     model.load_state_dict(torch.load(model_path))
 
     acc, loss = eval_cats_clf(val_loader, model, criterion)
@@ -122,3 +122,38 @@ if test_flag_cnn == True:
 
     for metric in results:
         print(f'{metric}: {results[metric]}')
+'''
+
+
+
+
+
+
+with torch.no_grad(): # we dont need the backward propagation and grad calculation
+    
+    n_correct = 0
+    n_samples = 0
+    n_class_correct = [0 for i in range(10)]
+    n_class_samples = [0 for i in range(10)]
+    for images, labels in test_loader:
+        images = images.to(device)
+        labels = labels.to(device)
+        outputs = model(images)
+        # max returns (value ,index)
+        _, predicted = torch.max(outputs, 1)
+        n_samples += labels.size(0)
+        n_correct += (predicted == labels).sum().item()
+        
+        for i in range(batch_size):
+            label = labels[i]
+            pred = predicted[i]
+            if (label == pred):
+                n_class_correct[label] += 1
+            n_class_samples[label] += 1
+
+    acc = 100.0 * n_correct / n_samples
+    print(f'Accuracy of the network: {acc} %')
+
+    for i in range(10):
+        acc = 100.0 * n_class_correct[i] / n_class_samples[i]
+        print(f'Accuracy of {classes[i]}: {acc} %')
