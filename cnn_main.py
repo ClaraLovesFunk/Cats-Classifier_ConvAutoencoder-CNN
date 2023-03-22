@@ -41,7 +41,7 @@ test_flag_cnn = False
 
 num_epochs = 10 ######5
 batch_size = 32 # number of samples in one batch patrick4 ##### how is batch-size affecting training?
-learning_rate = 1e-5     #0.001 ###0.001
+learning_rate = 1e-3 #####1e-5     #0.001 ###0.001
 
 supervised_ratio = 0.2 ##### 0.2
 train_ratio = 0.8
@@ -52,7 +52,7 @@ classes = ('cat','dog')
 
 train_dir = 'data/train'
 test_dir = 'data/test'
-model_path = 'model/cnn.pth'
+model_path = 'model/cnn_shallow.pth'
 results_path = 'results/results_cnn.npy'
 
 train_list = glob.glob(os.path.join(train_dir,'*.jpg')) 
