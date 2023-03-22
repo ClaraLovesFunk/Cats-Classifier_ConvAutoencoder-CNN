@@ -32,8 +32,8 @@ if device =='cuda':
 
 # FLAGS
 
-train_flag_cnn = True
-test_flag_cnn = False
+train_flag_cnn = False
+test_flag_cnn = True
 
 
 
@@ -79,17 +79,17 @@ test_loader = torch.utils.data.DataLoader(dataset = test_data, batch_size=batch_
 # DEFINE MODEL
 
 model = cnn_cats().to(device)
-model.train()
 
+#optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate) ##########
+optimizer = optim.Adam(params = model.parameters(),lr=learning_rate)
+criterion = nn.CrossEntropyLoss() #eingebautes softmax
+
+model.train()
 
 
 # TRAIN
 
 if train_flag_cnn == True:
-
-    #optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate) ##########
-    optimizer = optim.Adam(params = model.parameters(),lr=learning_rate)
-    criterion = nn.CrossEntropyLoss() #eingebautes softmax
 
     for epoch in range(num_epochs):
         epoch_loss = 0
@@ -140,7 +140,34 @@ if train_flag_cnn == True:
 if test_flag_cnn == True:
     
     model.load_state_dict(torch.load(model_path))
-    with torch.no_grad(): # we dont need the backward propagation and grad calculation
+    
+    with torch.no_grad():
+            test_accuracy=0
+            test_loss =0
+            for data, label in test_loader:
+                data = data.to(device)
+                label = label.to(device)
+                
+                val_output = model(data)
+                val_loss = criterion(val_output,label)
+                
+                
+                acc = ((val_output.argmax(dim=1) == label).float().mean())
+                test_accuracy += acc/ len(val_loader)
+                test_loss += val_loss/ len(val_loader)
+                
+            print('test_accuracy : {}, test_loss : {}'.format(test_accuracy,test_loss))
+
+
+
+
+
+
+
+
+
+    
+    '''with torch.no_grad(): # we dont need the backward propagation and grad calculation
         
         n_correct = 0
         n_samples = 0
@@ -153,7 +180,7 @@ if test_flag_cnn == True:
             images = images.to(device)
             labels = labels.to(device)
             outputs = model(images)
-            print(outputs)
+            #print(outputs)
             
             # max returns (value ,index)
             _, predicted = torch.max(outputs, 1)
@@ -174,5 +201,5 @@ if test_flag_cnn == True:
 
         for i in range(2):
             acc = 100.0 * n_class_correct[i] / n_class_samples[i]
-            print(f'Accuracy of {classes[i]}: {acc} %')
+            print(f'Accuracy of {classes[i]}: {acc} %')'''
 # %%
