@@ -87,10 +87,10 @@ val_loader = torch.utils.data.DataLoader(dataset = val_data, batch_size=batch_si
 # check range of values in image tensor
 dataiter = iter(test_loader)
 x, y = dataiter.next()
-
+'''
 print(f'original dataloader: {x.size()}')
 
-conv1 = nn.Conv2d(3, 8, 8)
+conv1 = nn.Conv2d(3, 16, 8)
 x= conv1(x)
 print(f'conv1: {x.size()}')
 
@@ -98,17 +98,17 @@ pool = nn.MaxPool2d(4, 4)
 x = pool(x)
 print(f'pool: {x.size()}')
 
-conv2 = nn.Conv2d(8,16,8)
+conv2 = nn.Conv2d(16,32,8)
 x = conv2(x)
 print(f'conv2: {x.size()}')
 
-pool = nn.MaxPool2d(4, 4)
+pool = nn.MaxPool2d(8, 8)
 x = pool(x)
 print(f'pool: {x.size()}')
 
-conv3 = nn.Conv2d(16,32,8)
-x = conv3(x)
-print(f'conv3: {x.size()}')
+#conv3 = nn.Conv2d(16,32,8)
+#x = conv3(x)
+#print(f'conv3: {x.size()}')
 
 
 
@@ -130,38 +130,63 @@ print(f'fc2: {x.size()}')
 
 fc3 = nn.Linear(84, 2)
 x = fc3(x)
-print(f'fc3: {x.size()}')
+print(f'fc3: {x.size()}')'''
 
 
 
-class cnn_cats(nn.Module):
 
 
-    def __init__(self):
+'''conv1 = nn.Conv2d(3, 16, 8)
+x= conv1(x)
+print(f'conv1: {x.size()}')
 
-        super(cnn_cats, self).__init__()
-        self.conv1 = nn.Conv2d(3, 16, 8)
-        self.conv2 = nn.Conv2d(16,32,8)
-        self.conv3 = nn.Conv2d(32,64,8)
+pool = nn.MaxPool2d(4)
+x = pool(x)
+print(f'pool: {x.size()}')
 
-        self.pool = nn.MaxPool2d(4, 4)
+conv2 = nn.Conv2d(16,32,8)
+x = conv2(x)
+print(f'conv2: {x.size()}')
 
-        self.fc1 = nn.Linear(in_features=1024, out_features=128)
-        self.fc2 = nn.Linear(128, 64)
-        self.fc3 = nn.Linear(64, 2)
+pool = nn.MaxPool2d(kernel_size=8)
+x = pool(x)
+print(f'pool: {x.size()}')
 
 
-    def forward(self, x):
-        
-        x = self.pool(F.relu(self.conv1(x)))  
-        x = self.pool(F.relu(self.conv2(x)))  
-        x = F.relu(self.conv3(x))
 
-        x = x.view(-1, 64*4*4)
+print('------------------------------------')
 
-        x = F.relu(self.fc1(x))               
-        x = F.relu(self.fc2(x))               
-        x = self.fc3(x)  
+conv2_T = nn.ConvTranspose2d(32,16,8, stride=12)
+x = conv2_T(x)
+print(f'deconv2: {x.size()}')'''
 
-        return x
-    
+print(f'original: {x.size()}')
+
+conv1 = nn.Conv2d(3, 16, 8)
+x= conv1(x)
+print(f'conv1: {x.size()}')
+
+pool = nn.MaxPool2d(4)
+x = pool(x)
+print(f'pool: {x.size()}')
+
+conv2 = nn.Conv2d(16,32,8)
+x = conv2(x)
+print(f'conv2: {x.size()}')
+
+pool = nn.MaxPool2d(8)
+x = pool(x)
+print(f'pool: {x.size()}')
+
+
+print('------------------------------------')
+
+conv2_T = nn.ConvTranspose2d(32,16,8, stride = 11, output_padding=3) #11, 2
+x = conv2_T(x)
+print(f'deconv2: {x.size()}')
+
+conv2_T = nn.ConvTranspose2d(16,3,8, stride = 4, output_padding=1)
+x = conv2_T(x)
+print(f'deconv2: {x.size()}')
+
+
