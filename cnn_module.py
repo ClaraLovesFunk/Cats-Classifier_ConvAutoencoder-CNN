@@ -34,41 +34,43 @@ class cnn_cats(nn.Module):
     def __init__(self):
 
         super(cnn_cats, self).__init__()
+
         self.conv1 = nn.Conv2d(3, 16, 8)
         self.conv2 = nn.Conv2d(16,32,8)
-        self.conv3 = nn.Conv2d(32,64,8)
+        #self.conv3 = nn.Conv2d(32,64,8)
 
-        self.pool = nn.MaxPool2d(4, 4)
+        self.pool1 = nn.MaxPool2d(4, 4)
+        self.pool2 = nn.MaxPool2d(8, 8)
 
-        self.fc1 = nn.Linear(in_features=1024, out_features=128)
-        self.fc2 = nn.Linear(128, 64)
-        self.fc3 = nn.Linear(64, 2)
+        self.fc1 = nn.Linear(in_features=800, out_features=128)
+        self.fc2 = nn.Linear(128, 2) #####self.fc2 = nn.Linear(128, 64)
+        #self.fc3 = nn.Linear(64, 2)
 
 
     def forward(self, x):
         
-        x = self.pool(F.relu(self.conv1(x)))  
-        x = self.pool(F.relu(self.conv2(x)))  
-        x = F.relu(self.conv3(x))
+        x = self.pool1(F.relu(self.conv1(x)))  
+        x = self.pool2(F.relu(self.conv2(x)))  
+        #x = F.relu(self.conv3(x))
 
-        x = x.view(-1, 64*4*4)
+        x = x.view(-1, 800)
 
         x = F.relu(self.fc1(x))               
-        x = F.relu(self.fc2(x))               
-        x = self.fc3(x)  
+        x = self.fc2(x)            #######x = F.relu(self.fc2(x))               
+        #x = self.fc3(x)  
 
         return x
     
 
 
 
-def cnn_cats_train(train_loader, num_epochs, model, criterion, optimizer, model_path):
+def cnn_cats_train(train_loader, num_epochs, model, criterion, optimizer):
 
     n_total_steps = len(train_loader)
     for epoch in range(num_epochs):
         for i, (images, labels) in enumerate(train_loader):
-            # origin shape: [4, 3, 32, 32] = 4, 3, 1024
-            # input_layer: 3 input channels, 6 output channels, 5 kernel size
+            # origin shape: 
+            # input_layer: 
             images = images.to(device)
             labels = labels.to(device)
 
@@ -81,7 +83,7 @@ def cnn_cats_train(train_loader, num_epochs, model, criterion, optimizer, model_
             loss.backward()
             optimizer.step()
 
-            if (i+1) % 2000 == 0:
+            if (i+1) % int(n_total_steps/3) == 0: ############ 10 mal pro epoche soll geprinted werden
                 print (f'Epoch [{epoch+1}/{num_epochs}], Step [{i+1}/{n_total_steps}], Loss: {loss.item():.4f}')
 
     print('Finished Training')

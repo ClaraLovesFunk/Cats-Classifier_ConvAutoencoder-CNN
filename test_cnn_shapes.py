@@ -102,13 +102,13 @@ conv2 = nn.Conv2d(16,32,8)
 x = conv2(x)
 print(f'conv2: {x.size()}')
 
-pool = nn.MaxPool2d(4, 4)
+pool = nn.MaxPool2d(8, 8)
 x = pool(x)
 print(f'pool: {x.size()}')
 
-conv3 = nn.Conv2d(32,64,8)
+'''conv3 = nn.Conv2d(32,64,8)
 x = conv3(x)
-print(f'conv3: {x.size()}')
+print(f'conv3: {x.size()}')'''
 
 
 
