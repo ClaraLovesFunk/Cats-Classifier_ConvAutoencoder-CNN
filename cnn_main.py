@@ -41,7 +41,7 @@ test_flag_cnn = False
 
 num_epochs = 10 ######5
 batch_size = 32 # number of samples in one batch patrick4 ##### how is batch-size affecting training?
-learning_rate = 1e-3     #0.001 ###0.001
+learning_rate = 1e-5     #0.001 ###0.001
 
 supervised_ratio = 0.2 ##### 0.2
 train_ratio = 0.8
@@ -85,96 +85,50 @@ model.train()
 
 # TRAIN
 
+if train_flag_cnn == True:
 
-#optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate) ##########
-optimizer = optim.Adam(params = model.parameters(),lr=learning_rate)
-criterion = nn.CrossEntropyLoss() #eingebautes softmax
+    #optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate) ##########
+    optimizer = optim.Adam(params = model.parameters(),lr=learning_rate)
+    criterion = nn.CrossEntropyLoss() #eingebautes softmax
 
-
-
-
-
-
-
-epochs = 10
-
-for epoch in range(epochs):
-    epoch_loss = 0
-    epoch_accuracy = 0
-    
-    for data, label in train_loader:
-        data = data.to(device)
-        label = label.to(device)
+    for epoch in range(num_epochs):
+        epoch_loss = 0
+        epoch_accuracy = 0
         
-        output = model(data)
-        loss = criterion(output, label)
-        
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-        
-        acc = ((output.argmax(dim=1) == label).float().mean())
-        epoch_accuracy += acc/len(train_loader)
-        epoch_loss += loss/len(train_loader)
-        
-    print('Epoch : {}, train accuracy : {}, train loss : {}'.format(epoch+1, epoch_accuracy,epoch_loss))
-    
-    
-    with torch.no_grad():
-        epoch_val_accuracy=0
-        epoch_val_loss =0
-        for data, label in val_loader:
+        for data, label in train_loader:
             data = data.to(device)
             label = label.to(device)
             
-            val_output = model(data)
-            val_loss = criterion(val_output,label)
+            output = model(data)
+            loss = criterion(output, label)
             
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
             
-            acc = ((val_output.argmax(dim=1) == label).float().mean())
-            epoch_val_accuracy += acc/ len(val_loader)
-            epoch_val_loss += val_loss/ len(val_loader)
+            acc = ((output.argmax(dim=1) == label).float().mean())
+            epoch_accuracy += acc/len(train_loader)
+            epoch_loss += loss/len(train_loader)
             
-        print('Epoch : {}, val_accuracy : {}, val_loss : {}'.format(epoch+1, epoch_val_accuracy,epoch_val_loss))
+        print('Epoch : {}, train accuracy : {}, train loss : {}'.format(epoch+1, epoch_accuracy,epoch_loss))
+        
+        with torch.no_grad():
+            epoch_val_accuracy=0
+            epoch_val_loss =0
+            for data, label in val_loader:
+                data = data.to(device)
+                label = label.to(device)
+                
+                val_output = model(data)
+                val_loss = criterion(val_output,label)
+                
+                
+                acc = ((val_output.argmax(dim=1) == label).float().mean())
+                epoch_val_accuracy += acc/ len(val_loader)
+                epoch_val_loss += val_loss/ len(val_loader)
+                
+            print('Epoch : {}, val_accuracy : {}, val_loss : {}'.format(epoch+1, epoch_val_accuracy,epoch_val_loss))
 
-
-
-
-
-
-
-
-
-'''
-print(f'lenght train_loader: {len(train_loader)}')
-n_total_steps = len(train_loader)
-for epoch in range(num_epochs):
-    for i, (images, labels) in enumerate(train_loader):
-        # origin shape: [4, 3, 32, 32] = 4, 3, 1024
-        # input_layer: 3 input channels, 6 output channels, 5 kernel size
-        images = images.to(device)
-        labels = labels.to(device)
-
-        # Forward pass
-        outputs = model(images)
-        loss = criterion(outputs, labels)
-
-        # Backward and optimize
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-
-        if (i+1) % int(n_total_steps/10) == 0:
-            print(labels)
-            print (f'Epoch [{epoch+1}/{num_epochs}], Step [{i+1}/{n_total_steps}], Loss: {loss.item():.4f}')
-
-
-
-
-
-if train_flag_cnn == True:
-
-    model = cnn_cats_train(train_loader, num_epochs, model, criterion, optimizer)
     torch.save(model.state_dict(), model_path)
 
 
@@ -222,4 +176,3 @@ if test_flag_cnn == True:
             acc = 100.0 * n_class_correct[i] / n_class_samples[i]
             print(f'Accuracy of {classes[i]}: {acc} %')
 # %%
-'''
