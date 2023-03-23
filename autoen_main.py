@@ -32,7 +32,7 @@ if device =='cuda':
 
 # FLAGS
 
-train_flag = False
+train_flag = True
 test_flag = True
 
 
