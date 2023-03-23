@@ -64,13 +64,17 @@ unsupervised_list, train_list, val_list, test_list = data_split(train_list, supe
 
 unsupervised_transforms, train_transforms, val_transforms, test_transforms = transf() 
 
-train_set = dataset(unsupervised_list, transform = unsupervised_transforms) 
-test_set = dataset(test_list, transform = test_transforms)  
+unsupervised_data = dataset(unsupervised_list, transform = unsupervised_transforms) 
+train_data = dataset(train_list, transform=train_transforms)
+val_data = dataset(val_list, transform=val_transforms)
+test_data = dataset(test_list, transform=test_transforms)
 
-train_loader = torch.utils.data.DataLoader(dataset = train_set, batch_size=batch_size, shuffle=True )
-test_loader = torch.utils.data.DataLoader(dataset = test_set, batch_size=batch_size, shuffle=True )
+unsupervised_loader = torch.utils.data.DataLoader(dataset = unsupervised_data, batch_size=batch_size, shuffle=True )
+train_loader = torch.utils.data.DataLoader(dataset = train_data, batch_size=batch_size, shuffle=False)
+val_loader = torch.utils.data.DataLoader(dataset = val_data, batch_size=batch_size, shuffle=False)
+test_loader = torch.utils.data.DataLoader(dataset = test_data, batch_size=batch_size, shuffle=False)
 
-print(f'dataset size: {len(train_set)}') 
+print(f'dataset size: {len(train_data)}') 
 
     
 # DEFINE MODEL
