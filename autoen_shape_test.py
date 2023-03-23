@@ -141,36 +141,48 @@ print(f'after unpooling: {x.size()}')'''
 
 
 
-
-
-input = x # Variable(torch.rand(1,1,64,64))
-print(f'original: {x.size()}')
-
-conv1 = nn.Conv2d(3, 16, 8)
-conv_output= conv1(x)
-print(f'conv1: {conv_output.size()}')
-
-###################################
-
 pool1 = nn.MaxPool2d(2, stride=2, padding=1, return_indices=True)
 pool2 = nn.MaxPool2d(2, stride=2, return_indices=True)
 unpool1= nn.MaxUnpool2d(2, stride=2)
 unpool2= nn.MaxUnpool2d(2, stride=2, padding=1)
 
-output1, indices1 = pool1(conv_output)
-print(f'pool1: {output1.size()}')
-output2, indices2 = pool2(output1)
-print(f'pool2: {output2.size()}')
 
-output3 = unpool1(output2, indices2, output_size=output1.size())
-print(f'unpool1: {output3.size()}')
-output4 = unpool2(output3, indices1, output_size=conv_output.size())
-print(f'unpool2: {output4.size()}')
+input = x 
+print(f'original: {x.size()}')
+
+
+conv1 = nn.Conv2d(3, 16, 8)
+conv1_output= conv1(x)
+print(f'conv1: {conv1_output.size()}')
+
+output1, indices1 = pool1(conv1_output)
+print(f'pool1: {output1.size()}')
+
+
+conv2 = nn.Conv2d(16,32,8)
+conv2_output = conv2(output1)
+print(f'conv2: {conv2_output.size()}')
+
+output2, indices2 = pool2(conv2_output)
+print(f'pool2: {output2.size()}')
 
 ###################################
 
-conv2_T = nn.ConvTranspose2d(16,3,8)
-x = conv2_T(output4)
-print(f'deconv2: {x.size()}')
+output3 = unpool1(output2, indices2, output_size=conv2_output.size())
+print(f'unpool1: {output3.size()}')
 
-#print(f'output: {output4.size()}')
+de_conv2 = nn.ConvTranspose2d(32, 16, 8)
+de_conv2_output = de_conv2(output3)
+print(f'de_conv2_output: {de_conv2_output.size()}')
+
+
+output4 = unpool2(de_conv2_output, indices1, output_size=conv1_output.size())
+print(f'unpool2: {output4.size()}')
+
+de_conv1 = nn.ConvTranspose2d(16,3,8)
+x = de_conv1(output4)
+print(f'de_conv1: {x.size()}')
+
+
+
+#print(f'output: {output4.size()}')'''
