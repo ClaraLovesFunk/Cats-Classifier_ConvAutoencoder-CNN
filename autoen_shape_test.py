@@ -139,49 +139,23 @@ x = unpool(x, indices)
 print(f'after unpooling: {x.size()}')'''
 
 
+input = x
 
+# encoder
 
-pool1 = nn.MaxPool2d(2, stride=2, padding=1, return_indices=True)
-pool2 = nn.MaxPool2d(2, stride=2, return_indices=True)
-unpool1= nn.MaxUnpool2d(2, stride=2)
-unpool2= nn.MaxUnpool2d(2, stride=2, padding=1)
-
-
-input = x 
-print(f'original: {x.size()}')
-
-
-conv1 = nn.Conv2d(3, 16, 8)
 conv1_output= conv1(x)
-print(f'conv1: {conv1_output.size()}')
+max1_output, indices1 = pool1(conv1_output)
 
-output1, indices1 = pool1(conv1_output)
-print(f'pool1: {output1.size()}')
-
-
-conv2 = nn.Conv2d(16,32,8)
-conv2_output = conv2(output1)
-print(f'conv2: {conv2_output.size()}')
-
-output2, indices2 = pool2(conv2_output)
-print(f'pool2: {output2.size()}')
-
-###################################
-
-output3 = unpool1(output2, indices2, output_size=conv2_output.size())
-print(f'unpool1: {output3.size()}')
-
-de_conv2 = nn.ConvTranspose2d(32, 16, 8)
-de_conv2_output = de_conv2(output3)
-print(f'de_conv2_output: {de_conv2_output.size()}')
+conv2_output = conv2(max1_output)
+max2_output, indices2 = pool2(conv2_output)
 
 
-output4 = unpool2(de_conv2_output, indices1, output_size=conv1_output.size())
-print(f'unpool2: {output4.size()}')
+# decoder
+unmax2_output = unpool2(max2_output, indices2, output_size=conv2_output.size())
+de_conv2_output = de_conv2(unmax2_output)
 
-de_conv1 = nn.ConvTranspose2d(16,3,8)
-x = de_conv1(output4)
-print(f'de_conv1: {x.size()}')
+unmax1_output = unpool1(de_conv2_output, indices1, output_size=conv1_output.size())
+de_conv1_output = de_conv1(unmax1_output)
 
 
 

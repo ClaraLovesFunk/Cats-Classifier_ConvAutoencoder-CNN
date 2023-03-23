@@ -1,50 +1,34 @@
-# works for black and white -- suspiciously good autoencoder for hardly any training
+##%%
 
-for (img, _) in train_loader: # iterating over the batches in train_loader
-
-    recon = model(img)
-    print(recon)
-
-    images_recon_new = recon #output[0][2]
-    print(f'size output: {images_recon_new.size()}')
-
-    plt.figure(figsize=(9, 2))
-    plt.gray()
-    imgs = img.detach().numpy()
-    recon = images_recon_new.detach().numpy()
-
-    for i, item in enumerate(img):
-        if i >= 9: break
-        plt.subplot(2, 9, i+1)
-        # item = item.reshape(-1, 28,28) # -> use for Autoencoder_Linear
-        # item: 1, 28, 28
-        plt.imshow(item[0])
-            
-    for i, item in enumerate(recon):
-        if i >= 9: break
-        plt.subplot(2, 9, 9+i+1) # row_length + i + 1
-        # item = item.reshape(-1, 28,28) # -> use for Autoencoder_Linear
-        # item: 1, 28, 28
-        plt.imshow(item[0])
+import torch
+import torch.nn as nn
+import torch
+import torch.optim as optim
+import torch.nn.functional as F
+from torchvision import datasets, models, transforms
+from torch.utils.data import DataLoader, Dataset
+import torchvision
+import torchvision.transforms as transforms
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import os
+import glob
+from sklearn.model_selection import train_test_split
+from PIL import Image
+from data_module import *
+from cnn_module import *
+from eval_viz_module import *
 
 
-    '''
+input = Variable(torch.rand(1,1,64,64))
+pool1 = nn.MaxPool2d(2, stride=2, padding=1, return_indices=True)
+pool2 = nn.MaxPool2d(2, stride=2, return_indices=True)
+unpool1= nn.MaxUnpool2d(2, stride=2)
+unpool2= nn.MaxUnpool2d(2, stride=2, padding=1)
 
-dataiter = iter(train_loader) # same but for one batch?
-img, labels = dataiter.next()
+output1, indices1 = pool1(input)
+output2, indices2 = pool2(output1)
 
-#recon = model(img)
-
-imgs = img.detach().numpy()
-
-#recon = recon.detach().numpy()
-
-# plot original imgs
-fig, axes = plt.subplots(nrows=1, ncols=5, sharex=True, sharey=True, figsize=(12,4))
-for idx in np.arange(5):
-    ax = fig.add_subplot(1, 5, idx+1, xticks=[], yticks=[])
-    imshow(imgs[idx])
-    print(labels[idx])
-    ax.set_title(classes[labels[idx]])
-
-plt.show() '''
+output3 = unpool1(output2,indices2)
+output4 = unpool2(output3, indices1)

@@ -170,7 +170,16 @@ pool = nn.MaxPool2d(4)
 x = pool(x)
 print(f'pool: {x.size()}')
 
-conv2 = nn.Conv2d(16,32,8)
+print('------------------------------------')
+
+pool = nn.MaxUnpool2d(4)
+x = pool(x)
+print(f'pool: {x.size()}')
+
+
+
+
+'''conv2 = nn.Conv2d(16,32,8)
 x = conv2(x)
 print(f'conv2: {x.size()}')
 
@@ -179,7 +188,7 @@ x = pool(x)
 print(f'pool: {x.size()}')
 
 
-print('------------------------------------')
+
 
 conv2_T = nn.ConvTranspose2d(32,16,8, stride = 11, output_padding=3) #11, 2
 x = conv2_T(x)
@@ -187,6 +196,6 @@ print(f'deconv2: {x.size()}')
 
 conv2_T = nn.ConvTranspose2d(16,3,8, stride = 4, output_padding=1)
 x = conv2_T(x)
-print(f'deconv2: {x.size()}')
+print(f'deconv2: {x.size()}')'''
 
 
