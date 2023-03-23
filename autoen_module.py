@@ -1,31 +1,10 @@
 import torch
-import torchvision
 import torch.nn as nn
 import torch.nn.functional as F
-import torch.optim as optim
-from torchvision import datasets, transforms
 import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.model_selection import train_test_split
-from data_module import *
-from eval_viz_module import *
-
-
-import torch
-import torchvision
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-from torchvision import datasets, transforms
-import matplotlib.pyplot as plt
-import numpy as np
-from sklearn.model_selection import train_test_split
-import matplotlib.pyplot as plt
-import numpy as np
-from PIL import Image
 from data_module import *
 from autoen_module import *
-from eval_viz_module import *
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 torch.manual_seed(0)
@@ -35,10 +14,11 @@ if device =='cuda':
 
 ###########################################################
 ###########################################################
-########
+###########################################################
 
 
 class Autoencoder(nn.Module):
+
     def __init__(self):
 
         super().__init__() 
@@ -54,7 +34,6 @@ class Autoencoder(nn.Module):
         self.unpool2= nn.MaxUnpool2d(8)
         self.unpool1= nn.MaxUnpool2d(4)   
                 
-
 
     def forward(self, x):
 
@@ -73,84 +52,6 @@ class Autoencoder(nn.Module):
         de_conv1_output = self.de_conv1(unmax1_output)
 
         return de_conv1_output
-    
-
-
-def autoen_train(num_epochs, data_loader, model, criterion, optimizer):
-    
-    outputs = []
-    for epoch in range(num_epochs):
-        for (img, _) in data_loader:
-
-            img.to(device)
-            recon = model(img) 
-            loss = criterion(recon, img) 
-            
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-
-            #if (i+1) % int(n_total_steps/3) == 0: 
-            #    print (f'Epoch [{epoch+1}/{num_epochs}], Step [{i+1}/{n_total_steps}], Loss: {loss.item():.4f}')
-
-        print(f'Epoch:{epoch+1}, Loss:{loss.item():.4f}') #where do we store loss over the batches?
-        outputs.append((epoch, img, recon))
-    
-    return model, outputs
-
-
-
-def viz_autoen(test_loader, model, classes):
-
-    dataiter = iter(test_loader) 
-    img, labels = dataiter.next()
-
-    recon = model(img)
-
-    imgs = img.detach().numpy()
-    recon = recon.detach().numpy()
-
-    # plot original imgs
-    fig, axes = plt.subplots(nrows=1, ncols=5, sharex=True, sharey=True, figsize=(12,4))
-    for idx in np.arange(5):
-        ax = fig.add_subplot(1, 5, idx+1, xticks=[], yticks=[])
-        imshow(imgs[idx])
-        ax.set_title(classes[labels[idx]])
-
-    # plot reconstr. imgs
-    fig, axes = plt.subplots(nrows=1, ncols=5, sharex=True, sharey=True, figsize=(12,4))
-    for idx in np.arange(5):
-        ax = fig.add_subplot(1, 5, idx+1, xticks=[], yticks=[])
-        imshow(recon[idx])
-        ax.set_title(classes[labels[idx]])
-
-    plt.show() 
-
-
-
-def autoen_test(data_loader, model, criterion):
-
-    model.to(device)
-    with torch.no_grad():
-
-        recon_all = []
-        img_all = []
-
-        for img_batch, _ in data_loader:
-
-            img_batch = img_batch.to(device)
-            recon_batch = model(img_batch)
-
-            recon_all.append(recon_batch.cpu())
-            img_all.append(img_batch.cpu())
-
-        recon_all = torch.cat(recon_all)
-        img_all = torch.cat(img_all) 
-
-        test_loss = criterion(recon_all, img_all)
-        print(f'test loss: {test_loss}')
-
-    return test_loss.data
 
 
 
@@ -171,6 +72,27 @@ class Autoencoder_Clf_Head(nn.Module):
         x = self.fc2(x)                        
   
         return x
+    
+
+
+def autoen_train(num_epochs, data_loader, model, criterion, optimizer):
+    
+    outputs = []
+    for epoch in range(num_epochs):
+        for (img, _) in data_loader:
+
+            img.to(device)
+            recon = model(img) 
+            loss = criterion(recon, img) 
+            
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+        print(f'Epoch:{epoch+1}, Loss:{loss.item():.4f}') 
+        outputs.append((epoch, img, recon))
+    
+    return model, outputs
 
 
 
@@ -232,5 +154,92 @@ def train_autoen_clf_head(num_epochs, train_loader, autoen, autoen_clf_head, cri
                 epoch_val_loss += val_loss/ len(val_outputs)
                 
             print('Epoch : {}, val_accuracy : {}, val_loss : {}'.format(epoch+1, epoch_val_accuracy,epoch_val_loss))
+
     return autoen_clf_head
-    
+
+
+
+def autoen_test(data_loader, model, criterion):
+
+    model.to(device)
+    with torch.no_grad():
+
+        recon_all = []
+        img_all = []
+
+        for img_batch, _ in data_loader:
+
+            img_batch = img_batch.to(device)
+            recon_batch = model(img_batch)
+
+            recon_all.append(recon_batch.cpu())
+            img_all.append(img_batch.cpu())
+
+        recon_all = torch.cat(recon_all)
+        img_all = torch.cat(img_all) 
+
+        test_loss = criterion(recon_all, img_all)
+        print(f'test loss: {test_loss}')
+
+    return test_loss.data
+
+
+
+def test_autoen_clf(test_loader, autoen, autoen_clf_head, criterion):
+        
+    with torch.no_grad():
+
+        test_accuracy=0
+        test_loss =0
+        for data, label in test_loader:
+            data = data.to(device)
+            label = label.to(device)
+
+
+            # encoder steps
+            conv1_output= autoen.conv1(data)
+            max1_output, indices1 = autoen.pool1(conv1_output)
+
+            conv2_output = autoen.conv2(max1_output)
+            max2_output, indices2 = autoen.pool2(conv2_output)
+
+            # classification head steps
+            test_outputs = autoen_clf_head(max2_output)
+
+
+            val_loss = criterion(test_outputs,label)
+            acc = ((test_outputs.argmax(dim=1) == label).float().mean())
+            test_accuracy += acc/ len(test_loader)
+            test_loss += val_loss/ len(test_loader)
+            
+        print('test_accuracy : {}, test_loss : {}'.format(test_accuracy,test_loss))
+
+    return test_accuracy, test_loss
+
+
+
+def viz_autoen(test_loader, model, classes):
+
+    dataiter = iter(test_loader) 
+    img, labels = dataiter.next()
+
+    recon = model(img)
+
+    imgs = img.detach().numpy()
+    recon = recon.detach().numpy()
+
+    # plot original imgs
+    fig, axes = plt.subplots(nrows=1, ncols=5, sharex=True, sharey=True, figsize=(12,4))
+    for idx in np.arange(5):
+        ax = fig.add_subplot(1, 5, idx+1, xticks=[], yticks=[])
+        imshow(imgs[idx])
+        ax.set_title(classes[labels[idx]])
+
+    # plot reconstr. imgs
+    fig, axes = plt.subplots(nrows=1, ncols=5, sharex=True, sharey=True, figsize=(12,4))
+    for idx in np.arange(5):
+        ax = fig.add_subplot(1, 5, idx+1, xticks=[], yticks=[])
+        imshow(recon[idx])
+        ax.set_title(classes[labels[idx]])
+
+    plt.show() 

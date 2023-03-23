@@ -1,20 +1,10 @@
 #%%
 
 import torch
-import torchvision
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
-from torchvision import datasets, transforms
-import matplotlib.pyplot as plt
-import numpy as np
-from sklearn.model_selection import train_test_split
-import matplotlib.pyplot as plt
-import numpy as np
-from PIL import Image
 from data_module import *
 from autoen_module import *
-from eval_viz_module import *
 
 
 

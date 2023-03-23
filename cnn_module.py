@@ -1,19 +1,7 @@
 import torch
 import torch.nn as nn
-import torch
-import torch.optim as optim
 import torch.nn.functional as F
-from torchvision import datasets, models, transforms
-from torch.utils.data import DataLoader, Dataset
-import torchvision
-import torchvision.transforms as transforms
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-import os
-import glob
-from sklearn.model_selection import train_test_split
-from PIL import Image
+
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 torch.manual_seed(0)
@@ -48,40 +36,81 @@ class cnn_cats(nn.Module):
         
         x = self.pool1(F.relu(self.conv1(x)))  
         x = self.pool2(F.relu(self.conv2(x)))  
-        #x = F.relu(self.conv3(x))
 
         x = x.view(-1, 800)
 
         x = F.relu(self.fc1(x))               
-        x = self.fc2(x)         #######x = F.relu(self.fc2(x))               
-        #x = self.fc3(x)  
+        x = self.fc2(x) 
 
         return x
 
 
-'''
-def cnn_cats_train(train_loader, num_epochs, model, criterion, optimizer):
 
-    n_total_steps = len(train_loader)
+
+def train_cnn(num_epochs, train_loader, model, criterion, optimizer, val_loader):
+
     for epoch in range(num_epochs):
-        for i, (images, labels) in enumerate(train_loader):
-            # origin shape: 
-            # input_layer: 
-            images = images.to(device)
-            labels = labels.to(device)
-
-            # Forward pass
-            outputs = model(images)
-            loss = criterion(outputs, labels)
-
-            # Backward and optimize
-            optimizer.zero_grad() # empty the gradients
+        epoch_loss = 0
+        epoch_accuracy = 0
+        
+        for data, label in train_loader:
+            data = data.to(device)
+            label = label.to(device)
+            
+            output = model(data)
+            loss = criterion(output, label)
+            
+            optimizer.zero_grad()
             loss.backward()
             optimizer.step()
+            
+            acc = ((output.argmax(dim=1) == label).float().mean())
+            epoch_accuracy += acc/len(train_loader)
+            epoch_loss += loss/len(train_loader)
+            
+        print('Epoch : {}, train accuracy : {}, train loss : {}'.format(epoch+1, epoch_accuracy,epoch_loss))
+        
+        with torch.no_grad():
+            epoch_val_accuracy=0
+            epoch_val_loss =0
+            for data, label in val_loader:
+                data = data.to(device)
+                label = label.to(device)
+                
+                val_output = model(data)
+                val_loss = criterion(val_output,label)
+                
+                
+                acc = ((val_output.argmax(dim=1) == label).float().mean())
+                epoch_val_accuracy += acc/ len(val_loader)
+                epoch_val_loss += val_loss/ len(val_loader)
+                
+            print('Epoch : {}, val_accuracy : {}, val_loss : {}'.format(epoch+1, epoch_val_accuracy,epoch_val_loss))
 
-            if (i+1) % int(n_total_steps/3) == 0: ############ 10 mal pro epoche soll geprinted werden
-                print (f'Epoch [{epoch+1}/{num_epochs}], Step [{i+1}/{n_total_steps}], Loss: {loss.item():.4f}')
+    return model
 
-    print('Finished Training')
-    
-    return model'''
+
+
+def test_cnn(test_loader, model, criterion):
+
+    with torch.no_grad():
+            
+        test_accuracy=0
+        test_loss =0
+
+        for data, label in test_loader:
+            data = data.to(device)
+            label = label.to(device)
+            
+            test_output = model(data)
+            test_loss = criterion(test_output,label)
+            
+            acc = ((test_output.argmax(dim=1) == label).float().mean())
+            test_accuracy += acc/ len(test_loader)
+            test_loss += test_loss/ len(test_loader)
+            
+        print('test_accuracy : {}, test_loss : {}'.format(test_accuracy,test_loss))
+
+    return test_accuracy, test_loss
+
+

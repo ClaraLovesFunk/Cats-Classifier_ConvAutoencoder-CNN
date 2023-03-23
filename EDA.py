@@ -1,26 +1,13 @@
 #%%
 
 import torch
-import torch.nn as nn
-import torch
-import torch.optim as optim
-import torch.nn.functional as F
-from torchvision import datasets, models, transforms
-from torch.utils.data import DataLoader, Dataset
-import torchvision
+from torchvision import transforms
 import torchvision.transforms as transforms
-import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 import os
 import glob
-from sklearn.model_selection import train_test_split
-from PIL import Image
-from collections import Counter
-
 from data_module import *
 from cnn_module import *
-from eval_viz_module import *
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 torch.manual_seed(0)
@@ -33,11 +20,12 @@ if device =='cuda':
 ###########################################################
 
 
+
 # HYPS & PARAMETERS
 
-num_epochs = 5 ######5
-batch_size = 100 # number of samples in one batch patrick4 ##### how is batch-size affecting training?
-learning_rate = 0.001 ###0.001
+num_epochs = 5 
+batch_size = 32
+learning_rate = 0.001 
 
 supervised_ratio = 0.2
 train_ratio = 0.8
@@ -58,7 +46,6 @@ transform_cats = transforms.Compose([
     transforms.RandomResizedCrop(224),
     transforms.RandomHorizontalFlip(),
     transforms.ToTensor(),
-    #transforms.Normalize((0.5), (0.5))
 ])
 
 data_set = dataset(train_list,transform = transform_cats)
@@ -67,23 +54,25 @@ data_loader = torch.utils.data.DataLoader(dataset = data_set, batch_size=batch_s
 
 # SHOW DATA
 
-#show_data(train_list)
+ 
+
+show_data(train_list)
 
 
 
 # CLASS SIZES
 
-#train_classes = [label for _, label in data_set]
-#print(Counter(train_classes))
+train_classes = [label for _, label in data_set]
+print(Counter(train_classes))
 
   
-data = {'Cats':12500, 'Dogs':12500} #{'Cats':Counter(train_classes)[0], 'Dogs':Counter(train_classes)[1]}  ########{'Cats':12500, 'Dogs':12500}
-courses = list(data.keys())
+data = {'Cats':12500, 'Dogs':12500} #{'Cats':Counter(train_classes)[0], 'Dogs':Counter(train_classes)[1]}
+classes = list(data.keys())
 values = list(data.values())
   
 fig = plt.figure(figsize = (10, 5))
  
-plt.bar(courses, values, color ='maroon',#, color ='maroon'
+plt.bar(classes, values, color ='maroon',
         width = 0.4)
  
 plt.xlabel("Classes")

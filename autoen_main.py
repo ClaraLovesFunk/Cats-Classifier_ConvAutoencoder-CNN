@@ -1,20 +1,9 @@
 #%%
 
 import torch
-import torchvision
 import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-from torchvision import datasets, transforms
-import matplotlib.pyplot as plt
-import numpy as np
-from sklearn.model_selection import train_test_split
-import matplotlib.pyplot as plt
-import numpy as np
-from PIL import Image
 from data_module import *
 from autoen_module import *
-from eval_viz_module import *
 
 
 
@@ -104,7 +93,7 @@ if test_flag == True:
     model.load_state_dict(torch.load(model_path))
 
     # plot reconstructed images
-    #viz_autoen(test_loader, model, classes)
+    viz_autoen(test_loader, model, classes)
 
     # evaluate 
     test_loss = autoen_test(test_loader, model, criterion)
