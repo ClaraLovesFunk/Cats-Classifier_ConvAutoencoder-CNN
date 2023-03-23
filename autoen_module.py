@@ -12,32 +12,39 @@ from data_module import *
 # same dims as cnn
 class Autoencoder(nn.Module):
     def __init__(self):
-        super().__init__()       
-        
-        self.encoder = nn.Sequential(            
-            nn.Conv2d(3, 16, 8)
-            nn.ReLU(),
-            nn.MaxPool2d(4, 4),
 
-            nn.Conv2d(16,32,8),  
-            nn.ReLU(),
-            nn.MaxPool2d(8, 8)
-        )
-        
-        self.decoder = nn.Sequential(
-            nn.MaxUnpool2d
-            nn.ConvTranspose2d(64, 32, 5), 
-            nn.ReLU(),
-            nn.ConvTranspose2d(32, 16, 5), 
-            nn.ReLU(),
-            nn.ConvTranspose2d(16, 3, 5), 
-            nn.Sigmoid() # Why???????
-        )
+        super().__init__() 
+
+        self.conv1 = nn.Conv2d(3, 16, 8)
+        self.conv2 = nn.Conv2d(16,32,8)
+        self.de_conv2 = nn.ConvTranspose2d(32, 16, 8)
+        self.de_conv1 = nn.ConvTranspose2d(16,3,8)
+    
+
+        self.pool1 = nn.MaxPool2d(2, stride=2, padding=1, return_indices=True)
+        self.pool2 = nn.MaxPool2d(2, stride=2, return_indices=True)
+        self.unpool2= nn.MaxUnpool2d(2, stride=2)
+        self.unpool1= nn.MaxUnpool2d(2, stride=2, padding=1)   
+                
+
 
     def forward(self, x):
-        encoded = self.encoder(x)
-        decoded = self.decoder(encoded)
-        return decoded
+
+        # encoder
+        conv1_output= self.conv1(x)
+        max1_output, indices1 = self.pool1(conv1_output)
+
+        conv2_output = self.conv2(max1_output)
+        max2_output, indices2 = self.pool2(conv2_output)
+
+        # decoder
+        unmax2_output = self.unpool2(max2_output, indices2, output_size=conv2_output.size())
+        de_conv2_output = self.de_conv2(unmax2_output)
+
+        unmax1_output = self.unpool1(de_conv2_output, indices1, output_size=conv1_output.size())
+        de_conv1_output = self.de_conv1(unmax1_output)
+
+        return de_conv1_output
     
 
 
