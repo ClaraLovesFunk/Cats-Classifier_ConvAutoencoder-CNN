@@ -39,8 +39,8 @@ test_flag_autoen_clf = True
 
 # HYPS & PARAMETERS
 
-num_epochs = 10 ######5
-batch_size = 32 # 64
+num_epochs = 10 
+batch_size = 32 
 learning_rate = 1e-3 
 weight_decay=1e-5
 
@@ -111,30 +111,6 @@ if test_flag_autoen_clf == True:
  
     autoen_clf_head.load_state_dict(torch.load(autoen_clf_head_path))
     autoen_clf_head.to(device)
+
+    test_accuracy, test_loss = test_autoen_clf(test_loader, autoen, autoen_clf_head, criterion)
     
-    with torch.no_grad():
-            test_accuracy=0
-            test_loss =0
-            for data, label in test_loader:
-                data = data.to(device)
-                label = label.to(device)
-
-
-                # encoder steps
-                conv1_output= autoen.conv1(data)
-                max1_output, indices1 = autoen.pool1(conv1_output)
-
-                conv2_output = autoen.conv2(max1_output)
-                max2_output, indices2 = autoen.pool2(conv2_output)
-
-                # classification head steps
-                val_outputs = autoen_clf_head(max2_output)
-
-
-                val_loss = criterion(val_outputs,label)
-                acc = ((val_outputs.argmax(dim=1) == label).float().mean())
-                test_accuracy += acc/ len(val_loader)
-                test_loss += val_loss/ len(val_loader)
-                
-            print('test_accuracy : {}, test_loss : {}'.format(test_accuracy,test_loss))
-
