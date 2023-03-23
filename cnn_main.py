@@ -64,7 +64,7 @@ train_list = glob.glob(os.path.join(train_dir,'*.jpg'))
 
 unsupervised_list, train_list, val_list, test_list = data_split(train_list,supervised_ratio,val_ratio, test_ratio, random_state=0)
 
-unsupervised_transforms, train_transforms, val_transforms, test_transforms = transf() ########
+unsupervised_transforms, train_transforms, val_transforms, test_transforms = transf() 
 
 train_data = dataset(train_list, transform=train_transforms)
 val_data = dataset(val_list, transform=val_transforms)
