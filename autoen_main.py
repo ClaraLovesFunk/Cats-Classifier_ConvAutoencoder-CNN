@@ -72,31 +72,22 @@ test_loader = torch.utils.data.DataLoader(dataset = test_set, batch_size=batch_s
 
 print(f'dataset size: {len(train_set)}') 
 
-# check range of values in image tensor
-#dataiter = iter(train_loader)
-#images_train, labels_train = dataiter.next()
-#print(images_train, labels_train)
-#print(f'range of values of image tensor: {torch.min(images)}, {torch.max(images)}') # based on original image values that were put in tensor and all the stuff like cropping, flipping...
-
-
-
     
 # DEFINE MODEL
 
-model_untrained = Autoencoder()
-
+model = Autoencoder()
+criterion = nn.MSELoss()
 
 
 # TRAIN
 
 if train_flag == True:
 
-    criterion = nn.MSELoss()
-    optimizer = torch.optim.Adam(model_untrained.parameters(),
-                                lr=learning_rate,             
-                                weight_decay=weight_decay)
+    optimizer = torch.optim.Adam(model.parameters(),
+                            lr=learning_rate,             
+                            weight_decay=weight_decay)
 
-    model, output = autoen_train(num_epochs, train_loader, model_untrained, criterion, optimizer)
+    model, output = autoen_train(num_epochs, train_loader, model, criterion, optimizer)
     torch.save(model.state_dict(), model_path)
 
 
@@ -108,29 +99,11 @@ if test_flag == True:
     model = Autoencoder()
     model.load_state_dict(torch.load(model_path))
 
-    dataiter = iter(test_loader) 
-    img, labels = dataiter.next()
+    # plot reconstructed images
+    #viz_autoen(test_loader, model, classes)
 
-    recon = model(img)
+    # evaluate 
+    test_loss = autoen_test(test_loader, model, criterion)
 
-    imgs = img.detach().numpy()
-    recon = recon.detach().numpy()
-
-    # plot original imgs
-    fig, axes = plt.subplots(nrows=1, ncols=5, sharex=True, sharey=True, figsize=(12,4))
-    for idx in np.arange(5):
-        ax = fig.add_subplot(1, 5, idx+1, xticks=[], yticks=[])
-        imshow(imgs[idx])
-        ax.set_title(classes[labels[idx]])
-
-    # plot reconstr. imgs
-    fig, axes = plt.subplots(nrows=1, ncols=5, sharex=True, sharey=True, figsize=(12,4))
-    for idx in np.arange(5):
-        ax = fig.add_subplot(1, 5, idx+1, xticks=[], yticks=[])
-        imshow(recon[idx])
-        ax.set_title(classes[labels[idx]])
-
-    plt.show() 
-    print('Finished Training')
-
+        
 # %%

@@ -8,6 +8,25 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.model_selection import train_test_split
 from data_module import *
+from eval_viz_module import *
+
+
+import torch
+import torchvision
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+from torchvision import datasets, transforms
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
+import numpy as np
+from PIL import Image
+from data_module import *
+from autoen_module import *
+from eval_viz_module import *
+
 
 
 class Autoencoder(nn.Module):
@@ -71,45 +90,54 @@ def autoen_train(num_epochs, data_loader, model, criterion, optimizer):
 
 
 
+def viz_autoen(test_loader, model, classes):
+
+    dataiter = iter(test_loader) 
+    img, labels = dataiter.next()
+
+    recon = model(img)
+
+    imgs = img.detach().numpy()
+    recon = recon.detach().numpy()
+
+    # plot original imgs
+    fig, axes = plt.subplots(nrows=1, ncols=5, sharex=True, sharey=True, figsize=(12,4))
+    for idx in np.arange(5):
+        ax = fig.add_subplot(1, 5, idx+1, xticks=[], yticks=[])
+        imshow(imgs[idx])
+        ax.set_title(classes[labels[idx]])
+
+    # plot reconstr. imgs
+    fig, axes = plt.subplots(nrows=1, ncols=5, sharex=True, sharey=True, figsize=(12,4))
+    for idx in np.arange(5):
+        ax = fig.add_subplot(1, 5, idx+1, xticks=[], yticks=[])
+        imshow(recon[idx])
+        ax.set_title(classes[labels[idx]])
+
+    plt.show() 
 
 
 
+def autoen_test(data_loader, model, criterion):
 
+    model.to(device)
+    with torch.no_grad():
 
-'''
-class Autoencoder(nn.Module):
-    def __init__(self):
+        recon_all = []
+        img_all = []
 
-        super().__init__() 
+        for img_batch, _ in data_loader:
 
-        self.conv1 = nn.Conv2d(3, 16, 8)
-        self.conv2 = nn.Conv2d(16,32,8)
-        self.de_conv2 = nn.ConvTranspose2d(32, 16, 8)
-        self.de_conv1 = nn.ConvTranspose2d(16,3,8)
-    
+            img_batch = img_batch.to(device)
+            recon_batch = model(img_batch)
 
-        self.pool1 = nn.MaxPool2d(2, stride=2, padding=1, return_indices=True)
-        self.pool2 = nn.MaxPool2d(2, stride=2, return_indices=True)
-        self.unpool2= nn.MaxUnpool2d(2, stride=2)
-        self.unpool1= nn.MaxUnpool2d(2, stride=2, padding=1)   
-                
+            recon_all.append(recon_batch.cpu())
+            img_all.append(img_batch.cpu())
 
+        recon_all = torch.cat(recon_all)
+        img_all = torch.cat(img_all) 
 
-    def forward(self, x):
+        test_loss = criterion(recon_all, img_all)
+        print(f'test loss: {test_loss}')
 
-        # encoder
-        conv1_output= self.conv1(x)
-        max1_output, indices1 = self.pool1(conv1_output)
-
-        conv2_output = self.conv2(max1_output)
-        max2_output, indices2 = self.pool2(conv2_output)
-
-        # decoder
-        unmax2_output = self.unpool2(max2_output, indices2, output_size=conv2_output.size())
-        de_conv2_output = self.de_conv2(unmax2_output)
-
-        unmax1_output = self.unpool1(de_conv2_output, indices1, output_size=conv1_output.size())
-        de_conv1_output = self.de_conv1(unmax1_output)
-
-        return de_conv1_output
-    '''
+    return test_loss.data
