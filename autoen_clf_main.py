@@ -32,7 +32,7 @@ if device =='cuda':
 
 # FLAGS
 
-train_flag_autoen_clf = True
+train_flag_autoen_clf = False
 test_flag_autoen_clf = True
 
 
@@ -88,50 +88,38 @@ autoen.to(device)
 
 # define classification head
 autoen_clf_head = Autoencoder_Clf_Head()
-autoen_clf_head.to(device)
-
 optimizer = optim.Adam(params = autoen_clf_head.parameters(),lr=learning_rate)
 criterion = nn.CrossEntropyLoss() 
 
 
+
+# TRAIN
+
 if train_flag_autoen_clf == True:
 
-    for epoch in range(num_epochs):
-        epoch_loss = 0
-        epoch_accuracy = 0
-        
-        for data, label in train_loader:
-            data = data.to(device)
-            label = label.to(device)
-            
-            # encoder steps
-            conv1_output= autoen.conv1(data)
-            max1_output, indices1 = autoen.pool1(conv1_output)
+    autoen_clf_head.to(device)
 
-            conv2_output = autoen.conv2(max1_output)
-            max2_output, indices2 = autoen.pool2(conv2_output)
+    autoen_clf_head = train_autoen_clf_head(num_epochs, train_loader, autoen, autoen_clf_head, criterion, optimizer, val_loader)
 
-            # classification head steps
-            outputs = autoen_clf_head(max2_output)
+    torch.save(autoen_clf_head.state_dict(), autoen_clf_head_path)
 
-            loss = criterion(outputs, label)            
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-            
-            acc = ((outputs.argmax(dim=1) == label).float().mean())
-            epoch_accuracy += acc/len(train_loader)
-            epoch_loss += loss/len(train_loader)
-            
-        print('Epoch : {}, train accuracy : {}, train loss : {}'.format(epoch+1, epoch_accuracy,epoch_loss))
-        
-        with torch.no_grad():
-            epoch_val_accuracy=0
-            epoch_val_loss =0
-            for data, label in val_loader:
+
+
+# EVAL
+
+if test_flag_autoen_clf == True:
+ 
+    autoen_clf_head.load_state_dict(torch.load(autoen_clf_head_path))
+    autoen_clf_head.to(device)
+    
+    with torch.no_grad():
+            test_accuracy=0
+            test_loss =0
+            for data, label in test_loader:
                 data = data.to(device)
                 label = label.to(device)
-                
+
+
                 # encoder steps
                 conv1_output= autoen.conv1(data)
                 max1_output, indices1 = autoen.pool1(conv1_output)
@@ -142,14 +130,11 @@ if train_flag_autoen_clf == True:
                 # classification head steps
                 val_outputs = autoen_clf_head(max2_output)
 
-                #val_output = model(data)
-                val_loss = criterion(val_outputs,label)
-                
-                
-                acc = ((val_outputs.argmax(dim=1) == label).float().mean())
-                epoch_val_accuracy += acc/ len(val_outputs)
-                epoch_val_loss += val_loss/ len(val_outputs)
-                
-            print('Epoch : {}, val_accuracy : {}, val_loss : {}'.format(epoch+1, epoch_val_accuracy,epoch_val_loss))
 
-    torch.save(autoen_clf_head.state_dict(), autoen_clf_head_path)
+                val_loss = criterion(val_outputs,label)
+                acc = ((val_outputs.argmax(dim=1) == label).float().mean())
+                test_accuracy += acc/ len(val_loader)
+                test_loss += val_loss/ len(val_loader)
+                
+            print('test_accuracy : {}, test_loss : {}'.format(test_accuracy,test_loss))
+

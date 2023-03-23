@@ -171,3 +171,66 @@ class Autoencoder_Clf_Head(nn.Module):
         x = self.fc2(x)                        
   
         return x
+
+
+
+def train_autoen_clf_head(num_epochs, train_loader, autoen, autoen_clf_head, criterion, optimizer, val_loader):
+
+    for epoch in range(num_epochs):
+        epoch_loss = 0
+        epoch_accuracy = 0
+        
+        for data, label in train_loader:
+            data = data.to(device)
+            label = label.to(device)
+            autoen = autoen.to(device)
+            
+            # encoder steps
+            conv1_output= autoen.conv1(data)
+            max1_output, indices1 = autoen.pool1(conv1_output)
+
+            conv2_output = autoen.conv2(max1_output)
+            max2_output, indices2 = autoen.pool2(conv2_output)
+
+            # classification head steps
+            outputs = autoen_clf_head(max2_output)
+
+            loss = criterion(outputs, label)            
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+            
+            acc = ((outputs.argmax(dim=1) == label).float().mean())
+            epoch_accuracy += acc/len(train_loader)
+            epoch_loss += loss/len(train_loader)
+            
+        print('Epoch : {}, train accuracy : {}, train loss : {}'.format(epoch+1, epoch_accuracy,epoch_loss))
+        
+        with torch.no_grad():
+            epoch_val_accuracy=0
+            epoch_val_loss =0
+            for data, label in val_loader:
+                data = data.to(device)
+                label = label.to(device)
+                
+                # encoder steps
+                conv1_output= autoen.conv1(data)
+                max1_output, indices1 = autoen.pool1(conv1_output)
+
+                conv2_output = autoen.conv2(max1_output)
+                max2_output, indices2 = autoen.pool2(conv2_output)
+
+                # classification head steps
+                val_outputs = autoen_clf_head(max2_output)
+
+                #val_output = model(data)
+                val_loss = criterion(val_outputs,label)
+                
+                
+                acc = ((val_outputs.argmax(dim=1) == label).float().mean())
+                epoch_val_accuracy += acc/ len(val_outputs)
+                epoch_val_loss += val_loss/ len(val_outputs)
+                
+            print('Epoch : {}, val_accuracy : {}, val_loss : {}'.format(epoch+1, epoch_val_accuracy,epoch_val_loss))
+    return autoen_clf_head
+    
