@@ -27,6 +27,15 @@ from data_module import *
 from autoen_module import *
 from eval_viz_module import *
 
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+torch.manual_seed(0)
+if device =='cuda':
+    torch.cuda.manual_seed_all(0) 
+
+
+###########################################################
+###########################################################
+########
 
 
 class Autoencoder(nn.Module):
@@ -73,6 +82,7 @@ def autoen_train(num_epochs, data_loader, model, criterion, optimizer):
     for epoch in range(num_epochs):
         for (img, _) in data_loader:
 
+            img.to(device)
             recon = model(img) 
             loss = criterion(recon, img) 
             
@@ -141,3 +151,23 @@ def autoen_test(data_loader, model, criterion):
         print(f'test loss: {test_loss}')
 
     return test_loss.data
+
+
+
+class Autoencoder_Clf_Head(nn.Module):
+
+    def __init__(self):
+
+        super().__init__()
+
+        self.fc1 = nn.Linear(in_features=800, out_features=128)
+        self.fc2 = nn.Linear(128, 2) 
+    
+    def forward(self, x):
+        
+        x = x.view(-1, 800)
+
+        x = F.relu(self.fc1(x))               
+        x = self.fc2(x)                        
+  
+        return x

@@ -80,9 +80,8 @@ test_loader = torch.utils.data.DataLoader(dataset = test_data, batch_size=batch_
 
 model = cnn_cats().to(device)
 
-#optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate) ##########
 optimizer = optim.Adam(params = model.parameters(),lr=learning_rate)
-criterion = nn.CrossEntropyLoss() #eingebautes softmax
+criterion = nn.CrossEntropyLoss() 
 
 model.train()
 
