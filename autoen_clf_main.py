@@ -3,6 +3,8 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import glob
+import os
 from data_module import *
 from autoen_module import *
 
@@ -22,7 +24,7 @@ if device =='cuda':
 
 # FLAGS
 
-train_flag_autoen_clf = False
+train_flag_autoen_clf = True
 test_flag_autoen_clf = True
 
 
@@ -44,7 +46,7 @@ autoen_path = 'model/autoencoder.pth'
 autoen_clf_head_path = 'model/autoencoder_clf_head.pth'
 results_path = 'results/results_autoencoder.npy'
 
-train_list = glob.glob(os.path.join(train_dir,'*.jpg')) 
+data_list = glob.glob(os.path.join(train_dir,'*.jpg')) 
 
 classes = ('cat','dog')
 
@@ -52,7 +54,7 @@ classes = ('cat','dog')
 
 # LOAD AND SPLIT DATA
 
-unsupervised_list, train_list, val_list, test_list = data_split(train_list, supervised_ratio,val_ratio, test_ratio, random_state=0) 
+unsupervised_list, train_list, val_list, test_list = data_split(data_list, supervised_ratio,val_ratio, test_ratio, random_state=0) 
 
 unsupervised_transforms, train_transforms, val_transforms, test_transforms = transf() 
 

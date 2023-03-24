@@ -23,14 +23,14 @@ if device =='cuda':
 # FLAGS
 
 train_flag_cnn = False
-test_flag_cnn = True
+test_flag_cnn = False
 
 
 
 # HYPS & PARAMETERS
 
 num_epochs = 10 ######5
-batch_size = 32 
+batch_size = 4050 
 learning_rate = 1e-3 #####1e-5     
 
 supervised_ratio = 0.2 

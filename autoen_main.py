@@ -2,6 +2,8 @@
 
 import torch
 import torch.nn as nn
+import os
+import glob
 from data_module import *
 from autoen_module import *
 
@@ -28,7 +30,7 @@ test_flag = True
 
 # HYPS & PARAMETERS
 
-num_epochs = 1 ######5
+num_epochs = 5 ######5
 batch_size = 32 # 64
 learning_rate = 1e-3 
 weight_decay=1e-5
@@ -42,30 +44,33 @@ train_dir = 'data/train'
 model_path = 'model/autoencoder.pth'
 results_path = 'results/results_autoencoder.npy'
 
-train_list = glob.glob(os.path.join(train_dir,'*.jpg')) 
+data_list = glob.glob(os.path.join(train_dir,'*.jpg')) ############## RENAME DATALIST! (also in dataset,)
 
 classes = ('cat','dog')
 
 
 # LOAD AND SPLIT DATA
 
-unsupervised_list, train_list, val_list, test_list = data_split(train_list, supervised_ratio,val_ratio, test_ratio, random_state=0) 
+unsupervised_list, train_list, val_list, test_list = data_split(data_list, supervised_ratio,val_ratio, test_ratio, random_state=0) 
 
 unsupervised_transforms, train_transforms, val_transforms, test_transforms = transf() 
 
+data_data = dataset(data_list, transform = unsupervised_transforms) 
 unsupervised_data = dataset(unsupervised_list, transform = unsupervised_transforms) 
 train_data = dataset(train_list, transform=train_transforms)
 val_data = dataset(val_list, transform=val_transforms)
 test_data = dataset(test_list, transform=test_transforms)
 
-unsupervised_loader = torch.utils.data.DataLoader(dataset = unsupervised_data, batch_size=batch_size, shuffle=True )
+data_loader = torch.utils.data.DataLoader(dataset = data_data, batch_size=batch_size, shuffle=False)
+unsupervised_loader = torch.utils.data.DataLoader(dataset = unsupervised_data, batch_size=batch_size, shuffle=False)
 train_loader = torch.utils.data.DataLoader(dataset = train_data, batch_size=batch_size, shuffle=False)
 val_loader = torch.utils.data.DataLoader(dataset = val_data, batch_size=batch_size, shuffle=False)
 test_loader = torch.utils.data.DataLoader(dataset = test_data, batch_size=batch_size, shuffle=False)
 
-print(f'dataset size: {len(train_data)}') 
-
+print(f'dataset size: {len(data_data)}') 
     
+
+
 # DEFINE MODEL
 
 model = Autoencoder()
@@ -80,7 +85,7 @@ if train_flag == True:
                             lr=learning_rate,             
                             weight_decay=weight_decay)
 
-    model, output = autoen_train(num_epochs, train_loader, model, criterion, optimizer)
+    model, output = autoen_train(num_epochs, data_loader, model, criterion, optimizer)
     torch.save(model.state_dict(), model_path)
 
 
