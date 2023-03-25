@@ -23,14 +23,14 @@ if device =='cuda':
 # FLAGS
 
 train_flag_cnn = False
-test_flag_cnn = False
+test_flag_cnn = True
 
 
 
 # HYPS & PARAMETERS
 
 num_epochs = 10 ######5
-batch_size = 4050 
+batch_size = 32 
 learning_rate = 1e-3 #####1e-5     
 
 supervised_ratio = 0.2 
@@ -98,7 +98,7 @@ if test_flag_cnn == True:
     
     model.load_state_dict(torch.load(model_path))
 
-    test_accuracy, test_loss = test_cnn(test_loader, model, criterion)
+    test_accuracy, test_loss = test_cnn(val_loader, model, criterion)
     
  
 # %%

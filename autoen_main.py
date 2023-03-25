@@ -98,7 +98,7 @@ if test_flag == True:
     model.load_state_dict(torch.load(model_path))
 
     # plot reconstructed images
-    viz_autoen(test_loader, model, classes)
+    viz_autoen(train_loader, model, classes)
 
     # evaluate 
     test_loss = autoen_test(test_loader, model, criterion)

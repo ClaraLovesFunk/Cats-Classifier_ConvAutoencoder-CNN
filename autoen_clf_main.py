@@ -24,7 +24,7 @@ if device =='cuda':
 
 # FLAGS
 
-train_flag_autoen_clf = True
+train_flag_autoen_clf = False
 test_flag_autoen_clf = True
 
 
@@ -104,5 +104,5 @@ if test_flag_autoen_clf == True:
     autoen_clf_head.load_state_dict(torch.load(autoen_clf_head_path))
     autoen_clf_head.to(device)
 
-    test_accuracy, test_loss = test_autoen_clf(test_loader, autoen, autoen_clf_head, criterion)
+    test_accuracy, test_loss = test_autoen_clf(val_loader, autoen, autoen_clf_head, criterion)
     
