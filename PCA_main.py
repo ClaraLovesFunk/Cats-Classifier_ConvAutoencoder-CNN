@@ -5,8 +5,20 @@ import torch.nn as nn
 import os
 import glob
 from sklearn.decomposition import PCA
+from mpl_toolkits import mplot3d
+from matplotlib.pyplot import imread
+from joblib import dump, load
+
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import glob
+import os
+
+
 from data_module import *
 from autoen_module import *
+from PCA_module import *
 
 
 
@@ -24,15 +36,17 @@ if device =='cuda':
 
 # FLAGS
 
-train_flag = False
-test_flag = False
+train_PCA_flag = True
+
+train_PCA_Clf_flag = True
+test_PCA_Clf_flag = True
 
 
 
 # HYPS & PARAMETERS
 
-num_epochs = 5 ######5
-batch_size = 25000 # 64
+num_epochs = 10 
+batch_size = 32  
 learning_rate = 1e-3 
 weight_decay=1e-5
 
@@ -42,8 +56,8 @@ val_ratio = 0.1
 test_ratio = 0.1
 
 train_dir = 'data/train'
-model_path = 'model/autoencoder.pth'
-results_path = 'results/results_autoencoder.npy'
+model_PCA_path = 'model/pca.joblib'
+model_PCA_Clf_head_path = 'model/pcar_clf_head.pth'
 
 data_list = glob.glob(os.path.join(train_dir,'*.jpg')) ############## RENAME DATALIST! (also in dataset,)
 
@@ -56,112 +70,97 @@ unsupervised_list, train_list, val_list, test_list = data_split(data_list, super
 
 unsupervised_transforms, train_transforms, val_transforms, test_transforms = transf() 
 
-
-
 data_data = dataset(data_list, transform = unsupervised_transforms) 
 unsupervised_data = dataset(unsupervised_list, transform = unsupervised_transforms) 
 train_data = dataset(train_list, transform=train_transforms)
 val_data = dataset(val_list, transform=val_transforms)
 test_data = dataset(test_list, transform=test_transforms)
 
-data_loader = torch.utils.data.DataLoader(dataset = data_data, batch_size=batch_size, shuffle=False)
+data_loader = torch.utils.data.DataLoader(dataset = data_data, batch_size=len(data_data), shuffle=False) # entire data in one batch
 unsupervised_loader = torch.utils.data.DataLoader(dataset = unsupervised_data, batch_size=batch_size, shuffle=False)
 train_loader = torch.utils.data.DataLoader(dataset = train_data, batch_size=batch_size, shuffle=False)
 val_loader = torch.utils.data.DataLoader(dataset = val_data, batch_size=batch_size, shuffle=False)
 test_loader = torch.utils.data.DataLoader(dataset = test_data, batch_size=batch_size, shuffle=False)
 
-dataiter = iter(test_loader) 
-img, labels = dataiter.next()
-
-img = torch.flatten(img, start_dim=2, end_dim=-1) # flatten only img, not over samples
-img = img.numpy()
-print(f' size data_loader: {img.shape}')
-
-
-'''#%%
-#!pip install sklearn numpy matplotlib
-#pip install matplotlib
-
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib import pyplot as plt
-import torch
-import torch.nn as nn
-import os
-import glob
-from data_module import *
-from autoen_module import *
-from sklearn.decomposition import PCA
-
-import matplotlib as plt
-from matplotlib.pyplot import imread
-import numpy as np
-
-
-def imshow(img, cmap = None):
-    img = img / 2 + 0.5  
-    plt.imshow(np.transpose(img, (1, 2, 0)),cmap = cmap)
-
-
-A = np.random.rand(4, 4) # 4 instances, 4 features
-B = np.dot(A, A.transpose())
-#print(B)
-
-samples = 500
-covariance_matrix = B
-X = np.random.multivariate_normal(mean=[0,0,0,0], cov=covariance_matrix, size=samples) # instances 4 dimensional
-print(X[0])
-
-
-pca = PCA(n_components=4).fit(X)
-# Now let’s take a look at our components and our explained variances:
-print(pca.components_)
-print(f'explained var: {pca.explained_variance_ratio_}')
-
-pca_2 = PCA(n_components=2).fit(X)
-transformed = pca_2.fit_transform(X)
-#plt.scatter(transformed.T[0], transformed.T[1])
-'''
 
 
 
+# PCA
 
+if train_PCA_flag == True:
 
-#'''
-from mpl_toolkits import mplot3d
-#pca_3 = PCA(n_components=3).fit(X)
-#transformed = pca_3.fit_transform(X)
-#fig = plt.figure()
-#ax = plt.axes(projection = '3d')
-#ax.scatter(transformed.T[0], transformed.T[1], transformed.T[2], alpha=0.3)
+    # access all data
+    dataiter = iter(data_loader) 
+    img_all, labels = dataiter.next()
 
-from matplotlib.pyplot import imread 
-#img = imread("data/train/cat.1.jpg")
-img = img.astype(np.uint8)
-#print(type(img))
-print(img.shape)
-img = img.mean(axis=1) # transform to greyscales by taking mean of r,g,b values
+    # prepare data for PCA
+    img_all = torch.flatten(img_all, start_dim=2, end_dim=-1) # flatten only img, not over samples
+    img_all = img_all.numpy() # to numpy
+    img_all = img_all.astype(np.uint8) # ?
+    img_all = img_all.mean(axis=1) # transform to greyscales by taking mean of r,g,b values
 
-#plt.imshow(img, cmap="gray")
-#imshow(img, cmap="gray")
+    # train PCA
+    tswizzle_pca = PCA(n_components=800).fit(img_all)
+    dump(tswizzle_pca, model_PCA_path)
 
+    print('PCA fitted and saved')
 
+''' apply pca on random batch
+tswizzle_pca_reloaded = load(model_PCA_path) 
 
-print(f'grey image shape {img.shape}')
-#img = img.flatten()
-#print(f'flattened image shape {img.shape}')
-#img = img.reshape(-1, 1)
-#print(f'reshaped flattened image shape {img.shape}')
+# access one batch from tain data
+dataiter = iter(train_loader) 
+data, labels = dataiter.next()
 
-tswizzle_pca = PCA(n_components=400).fit(img)
+# prepare data for PCA
+data = torch.flatten(data, start_dim=2, end_dim=-1) # flatten only img, not over samples
+data = data.numpy() # to numpy
+data = data.astype(np.uint8) # ?
+data = data.mean(axis=1) # transform to greyscales by taking mean of r,g,b values
 
-transformed = tswizzle_pca.transform(img)
+transformed = tswizzle_pca_reloaded.transform(data)
 print(f'transformed {transformed.shape}')
 
-projected = tswizzle_pca.inverse_transform(transformed)
-print(f'projected {projected.shape}')
-#'''
+transformed = torch.from_numpy(transformed)
+print(f'transformed {transformed.size()}')
+
+# reconstruct original
+#projected = tswizzle_pca_reloaded.inverse_transform(transformed)
+#print(f'projected {projected.shape}')'''
 
 
-# %%
 
+
+
+    
+# CLASSIFICATION HEAD
+
+# load PCA-model
+model_PCA = load(model_PCA_path) 
+
+# define classification head
+PCA_clf_head = Autoencoder_Clf_Head()
+optimizer = optim.Adam(params = PCA_clf_head.parameters(),lr=learning_rate)
+criterion = nn.CrossEntropyLoss() 
+
+
+
+# TRAIN
+
+if train_PCA_Clf_flag == True:
+
+    PCA_clf_head = train_PCA_clf_head(num_epochs, train_loader, model_PCA, PCA_clf_head, criterion, optimizer, val_loader)
+
+    torch.save(PCA_clf_head.state_dict(), model_PCA_Clf_head_path)
+
+
+
+# EVAL
+
+if test_PCA_Clf_flag == True:
+ 
+    PCA_clf_head.load_state_dict(torch.load(model_PCA_Clf_head_path))
+    #PCA_clf_head.to(device)
+
+    test_accuracy, test_loss = test_PCA_clf(val_loader, model_PCA, PCA_clf_head, criterion)
+    
