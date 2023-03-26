@@ -36,10 +36,10 @@ if device =='cuda':
 
 # FLAGS
 
-train_PCA_flag = True
+train_PCA_flag = False
 
-train_PCA_Clf_flag = True
-test_PCA_Clf_flag = True
+train_PCA_Clf_flag = False
+test_PCA_Clf_flag = False
 
 
 
@@ -105,7 +105,7 @@ if train_PCA_flag == True:
 
     print('PCA fitted and saved')
 
-''' apply pca on random batch
+#apply pca on random batch
 tswizzle_pca_reloaded = load(model_PCA_path) 
 
 # access one batch from tain data
@@ -114,6 +114,7 @@ data, labels = dataiter.next()
 
 # prepare data for PCA
 data = torch.flatten(data, start_dim=2, end_dim=-1) # flatten only img, not over samples
+print(f'flatten {data.shape}')
 data = data.numpy() # to numpy
 data = data.astype(np.uint8) # ?
 data = data.mean(axis=1) # transform to greyscales by taking mean of r,g,b values
