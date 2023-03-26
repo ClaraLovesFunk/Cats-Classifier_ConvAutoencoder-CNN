@@ -105,32 +105,6 @@ if train_PCA_flag == True:
 
     print('PCA fitted and saved')
 
-#apply pca on random batch
-tswizzle_pca_reloaded = load(model_PCA_path) 
-
-# access one batch from tain data
-dataiter = iter(train_loader) 
-data, labels = dataiter.next()
-
-# prepare data for PCA
-data = torch.flatten(data, start_dim=2, end_dim=-1) # flatten only img, not over samples
-print(f'flatten {data.shape}')
-data = data.numpy() # to numpy
-data = data.astype(np.uint8) # ?
-data = data.mean(axis=1) # transform to greyscales by taking mean of r,g,b values
-
-transformed = tswizzle_pca_reloaded.transform(data)
-print(f'transformed {transformed.shape}')
-
-transformed = torch.from_numpy(transformed)
-print(f'transformed {transformed.size()}')
-
-# reconstruct original
-#projected = tswizzle_pca_reloaded.inverse_transform(transformed)
-#print(f'projected {projected.shape}')'''
-
-
-
 
 
     
@@ -145,9 +119,6 @@ optimizer = optim.Adam(params = PCA_clf_head.parameters(),lr=learning_rate)
 criterion = nn.CrossEntropyLoss() 
 
 
-
-# TRAIN
-
 if train_PCA_Clf_flag == True:
 
     PCA_clf_head = train_PCA_clf_head(num_epochs, train_loader, model_PCA, PCA_clf_head, criterion, optimizer, val_loader)
@@ -155,13 +126,9 @@ if train_PCA_Clf_flag == True:
     torch.save(PCA_clf_head.state_dict(), model_PCA_Clf_head_path)
 
 
-
-# EVAL
-
 if test_PCA_Clf_flag == True:
  
     PCA_clf_head.load_state_dict(torch.load(model_PCA_Clf_head_path))
-    #PCA_clf_head.to(device)
 
     test_accuracy, test_loss = test_PCA_clf(val_loader, model_PCA, PCA_clf_head, criterion)
     

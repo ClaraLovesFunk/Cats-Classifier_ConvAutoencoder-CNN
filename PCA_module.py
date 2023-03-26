@@ -26,15 +26,11 @@ def train_PCA_clf_head(num_epochs, train_loader, model_PCA, PCA_clf_head, criter
         epoch_accuracy = 0
         
         for data, label in train_loader:
-            #data = data.to(device)
-            #label = label.to(device)
-            #model_PCA = model_PCA.to(device)
-            #PCA_clf_head = PCA_clf_head.to(device)
 
             # prepare data for PCA
             data = torch.flatten(data, start_dim=2, end_dim=-1) # flatten only img, not over samples
             data = data.numpy() # to numpy
-            data = data.astype(np.uint8) # ?
+            data = data.astype(np.uint8) # 
             data = data.mean(axis=1) # transform to greyscales by taking mean of r,g,b values
             
             # compress data & turn to tensor
@@ -61,16 +57,12 @@ def train_PCA_clf_head(num_epochs, train_loader, model_PCA, PCA_clf_head, criter
             epoch_accuracy = 0
             
             for data, label in val_loader:
-                #data = data.to(device)
-                #label = label.to(device)
-                #model_PCA = model_PCA.to(device)
-                #PCA_clf_head = PCA_clf_head.to(device)
 
                 # prepare data for PCA
-                data = torch.flatten(data, start_dim=2, end_dim=-1) # flatten only img, not over samples
-                data = data.numpy() # to numpy
-                data = data.astype(np.uint8) # ?
-                data = data.mean(axis=1) # transform to greyscales by taking mean of r,g,b values
+                data = torch.flatten(data, start_dim=2, end_dim=-1) 
+                data = data.numpy() 
+                data = data.astype(np.uint8)  
+                data = data.mean(axis=1)
                 
                 # compress data & turn to tensor
                 data_compressed= model_PCA.transform(data)
@@ -80,9 +72,6 @@ def train_PCA_clf_head(num_epochs, train_loader, model_PCA, PCA_clf_head, criter
                 outputs = PCA_clf_head(data_compressed.float())
 
                 loss = criterion(outputs, label)            
-                #optimizer.zero_grad()
-                #loss.backward()
-                #optimizer.step()
                 
                 acc = ((outputs.argmax(dim=1) == label).float().mean())
                 epoch_accuracy += acc/len(val_loader)
@@ -102,16 +91,12 @@ def test_PCA_clf(test_loader, model_PCA, autoen_clf_head, criterion):
         test_accuracy=0
         test_loss =0
         for data, label in test_loader:
-            #data = data.to(device)
-            #label = label.to(device)
-            #model_PCA = model_PCA.to(device)
-            #autoen_clf_head = autoen_clf_head.to(device)
 
             # prepare data for PCA
-            data = torch.flatten(data, start_dim=2, end_dim=-1) # flatten only img, not over samples
-            data = data.numpy() # to numpy
-            data = data.astype(np.uint8) # ?
-            data = data.mean(axis=1) # transform to greyscales by taking mean of r,g,b values
+            data = torch.flatten(data, start_dim=2, end_dim=-1) 
+            data = data.numpy() 
+            data = data.astype(np.uint8) 
+            data = data.mean(axis=1) 
             
             # compress data & turn to tensor
             data_compressed= model_PCA.transform(data)
